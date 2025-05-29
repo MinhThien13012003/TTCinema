@@ -1,23 +1,39 @@
-import React from 'react';
-import { Outlet, Link } from 'react-router-dom';
-import { AppBar, Toolbar, Typography, Container, Button } from '@mui/material';
+import { Container } from '@mui/material';
+import AppBar from '../components/AppBar';
+import Banner from '../pages/Home/Banner';
+import MainContent from '../pages/Home/MainContent';
+import Footer from '../pages/Home/Footer';
+import Box from '@mui/material/Box'
 
 function MainLayout() {
   return (
-    <>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            TTCine
-          </Typography>
-          <Button color="inherit" component={Link} to="/">Trang chủ</Button>
-          <Button color="inherit" component={Link} to="/login">Đăng nhập</Button>
-        </Toolbar>
-      </AppBar>
-      <Container sx={{ mt: 4 }}>
-        <Outlet />
-      </Container>
-    </>
+    <Container disableGutters maxWidth={false} sx={{
+        display: 'grid',
+        height: '100vh',
+        gridTemplateRows: '50px 60px 1fr 50px',
+        gridTemplateAreas: `
+          "header"
+          "banner"
+          "content"
+          "footer"
+        `
+      }}
+    >
+        <Box sx={{ gridArea: 'header', bgcolor: 'primary.main' }}>
+          <AppBar />
+        </Box>
+        <Box sx={{ gridArea: 'banner', bgcolor: 'secondary.main' }}>
+          <Banner />
+        </Box>
+        <Box sx={{ gridArea: 'content', bgcolor: 'red' }}>
+          <MainContent />
+        </Box>
+        <Box sx={{ gridArea: 'footer', bgcolor: 'grey.300' }}>
+          <Footer />
+        </Box>
+        
+    </Container>
+    
   );
 }
 
