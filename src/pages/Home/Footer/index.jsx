@@ -4,7 +4,7 @@ import Box from "@mui/material/Box";
 function index() {
   return (
     <Box sx={{
-        height: (theme) => theme.cine.footerHeight,
+        height: '100%',
         bgcolor: 'blue',
         width: '100%',
         display: 'flex',

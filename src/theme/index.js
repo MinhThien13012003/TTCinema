@@ -1,9 +1,5 @@
 import { extendTheme } from '@mui/material/styles'
 
-const APP_BAR_HEIGHT= '58px'
-const Banner_HEIGHT= '80px'
-const Footer_HEIGHT= '50px'
-const Main_CONTENT_HEIGHT= `calc(300vh - ${APP_BAR_HEIGHT} - ${Banner_HEIGHT}- ${Footer_HEIGHT})`
 const colors = {
   // Màu chính từ logo
   primary: {
@@ -57,12 +53,7 @@ const colors = {
   }
 }
 const theme = extendTheme({
-  cine: {
-    appBarHeight: APP_BAR_HEIGHT,
-    bannerHeight: Banner_HEIGHT,
-    mainContentHeight: Main_CONTENT_HEIGHT,
-    footerHeight: Footer_HEIGHT
-  },
+  
   palette: {
     mode: 'dark',
     primary: colors.primary,

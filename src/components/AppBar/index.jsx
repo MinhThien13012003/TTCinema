@@ -61,7 +61,7 @@ function AppBar() {
 
   // Mobile drawer content
   const drawer = (
-    <Box sx={{ width: 250, height: '100%',bgcolor:'#1a1a2e' }}>
+    <Box sx={{ width: 250, height: '100%',bgcolor:'#16213e' }}>
       <List sx={{gap:2}}>
         <ListItem sx={{ p: 0 }}>
           <MenuItemStyled sx={{ width: '100%', justifyContent: 'flex-start' }}>
@@ -97,8 +97,8 @@ function AppBar() {
         justifyContent: 'space-between',
         gap: 2,
         overflow: 'hidden',
-        height: (theme) => theme.cine.appBarHeight,
-        backgroundColor: '#1a1a2e',
+        height: '100%',
+        backgroundColor: '#16213e',
       }}>
         {/* Logo */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
