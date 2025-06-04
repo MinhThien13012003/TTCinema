@@ -18,7 +18,7 @@ function Movie() {
   return (
     <Box>
         <Button
-        sx={{ color: '#F8FAFC', border: 'none',bgcolor:'#FFB800' }}
+        sx={{ color: '#F8FAFC', border: 'none',background:'linear-gradient(135deg, #FFB800 0%, #FF8C00 100%)' }}
         id="basic-button-movie"
         aria-controls={open ? 'basic-menu-movie' : undefined}
         aria-haspopup="true"

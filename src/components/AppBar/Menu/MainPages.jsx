@@ -5,7 +5,7 @@ import Stack from '@mui/material/Stack';
 function MainPage() {
   return (
       <Button component="button" sx={{
-        bgcolor: '#FFB800',
+        background: 'linear-gradient(135deg, #FFB800 0%, #FF8C00 100%)',
         color: '#F8FAFC'
       }}>
         Trang Chủ 

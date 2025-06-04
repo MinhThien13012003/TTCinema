@@ -10,7 +10,7 @@ function MainLayout() {
     <Container disableGutters maxWidth={false} sx={{
         display: 'grid',
         height: '100vh',
-        gridTemplateRows: '50px 500px 1fr 50px',
+        gridTemplateRows: '50px 400px 1fr 50px',
         gridTemplateAreas: `
           "header"
           "banner"
@@ -22,10 +22,10 @@ function MainLayout() {
         <Box sx={{ gridArea: 'header', bgcolor: '#2C84D6' }}>
           <AppBar />
         </Box>
-        <Box sx={{ gridArea: 'banner', }}>
+        <Box sx={{ gridArea: 'banner', alignItems: 'center', display: 'flex', justifyContent: 'center', background: 'linear-gradient(135deg, #4A5FD9 0%, #6B73E0 25%, #8A87E7 50%, #B5A5E8 75%, #ffd700 100%)' }}>
           <Banner />
         </Box>
-        <Box sx={{ gridArea: 'content', bgcolor: 'red' }}>
+        <Box sx={{ gridArea: 'content', }}>
           <MainContent />
         </Box>
         <Box sx={{ gridArea: 'footer', bgcolor: 'grey.300' }}>

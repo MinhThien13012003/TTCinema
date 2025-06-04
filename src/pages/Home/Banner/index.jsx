@@ -7,45 +7,15 @@ import {
   Fade,
   LinearProgress,
   Chip,
-  Stack
+  Stack,
 } from '@mui/material';
 import {
   ArrowBackIos,
   ArrowForwardIos,
-  PlayArrow,
-  ShoppingCart,
-  FiberManualRecord
+  FiberManualRecord,
 } from '@mui/icons-material';
 
-const movieList = [
-  {
-    id: 1,
-    title: 'Mượn Hồn Đoạt Xác',
-    image: 'https://ddcinema.vn/Areas/Admin/Content/Fileuploads/images/slider/bringherback.jpg',
-    description: 'Bộ phim kinh dị đầy kịch tính với cốt truyện hấp dẫn',
-    genre: 'Kinh dị',
-    rating: '18+',
-    duration: '120 phút'
-  },
-  {
-    id: 2,
-    title: 'Tom Cruise: Mission Impossible 8',
-    image: 'https://ddcinema.vn/Areas/Admin/Content/Fileuploads/images/slider/mi8_rolling_banner.jpg',
-    description: 'Nhiệm vụ bất khả thi tiếp tục với những pha hành động mãn nhãn',
-    genre: 'Hành động',
-    rating: '16+',
-    duration: '150 phút'
-  },
-  {
-    id: 3,
-    title: 'Inside Out 2',
-    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQe-Iq3dF2zE2TBPRCqaU6kNviE-xzcoT9-6Q&s',
-    description: 'Cuộc phiêu lưu cảm xúc mới trong thế giới nội tâm',
-    genre: 'Hoạt hình',
-    rating: 'P',
-    duration: '95 phút'
-  },
-];
+import bannerData from '../../../utils/bannerData';
 
 function Banner() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -56,7 +26,7 @@ function Banner() {
     if (isTransitioning) return;
     setIsTransitioning(true);
     setProgress(0);
-    setCurrentIndex((prev) => (prev === 0 ? movieList.length - 1 : prev - 1));
+    setCurrentIndex((prev) => (prev === 0 ? bannerData.length - 1 : prev - 1));
     setTimeout(() => setIsTransitioning(false), 600);
   };
 
@@ -64,7 +34,9 @@ function Banner() {
     if (isTransitioning) return;
     setIsTransitioning(true);
     setProgress(0);
-    setCurrentIndex((prev) => (prev === movieList.length - 1 ? 0 : prev + 1));
+    setCurrentIndex((prev) =>
+      prev === bannerData.length - 1 ? 0 : prev + 1
+    );
     setTimeout(() => setIsTransitioning(false), 600);
   };
 
@@ -77,36 +49,34 @@ function Banner() {
   };
 
   useEffect(() => {
-    const progressInterval = setInterval(() => {
+    const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
-          if (!isTransitioning) {
-            handleNext();
-          }
+          if (!isTransitioning) handleNext();
           return 0;
         }
-        return prev + 1.5; // Tăng chậm hơn để có thời gian xem
+        return prev + 1.5;
       });
     }, 75);
-
-    return () => clearInterval(progressInterval);
+    return () => clearInterval(interval);
   }, [isTransitioning]);
 
-  const movie = movieList[currentIndex];
+  const item = bannerData[currentIndex];
 
   return (
     <Box
       sx={{
         position: 'relative',
-        width: '100%',
+        display: 'flex',
+        width: '80%',
         height: '100%',
         overflow: 'hidden',
-        borderRadius: 3,
         boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
         backgroundColor: '#000',
+        alignSelf: 'center',
+        alignItems: 'center'
       }}
     >
-      {/* Progress Bar */}
       <LinearProgress
         variant="determinate"
         value={progress}
@@ -125,36 +95,36 @@ function Banner() {
         }}
       />
 
-      {/* Background Image với Animation */}
       <Box
         sx={{
           position: 'absolute',
           inset: 0,
-          backgroundImage: `url(${movie.image})`,
-          backgroundSize: 'cover',
+          backgroundImage: `url(${item.image})`,
+          backgroundSize: '100% 100%',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: 'all 0.8s ease',
           transform: isTransitioning ? 'scale(1.05)' : 'scale(1)',
           filter: isTransitioning ? 'brightness(0.7)' : 'brightness(1)',
           '&::before': {
             content: '""',
             position: 'absolute',
             inset: 0,
-            background: 'linear-gradient(135deg, rgba(0,0,0,0.7) 0%, transparent 50%, rgba(0,0,0,0.3) 100%)',
+            background:
+              'linear-gradient(135deg, rgba(0,0,0,0.7) 0%, transparent 50%, rgba(0,0,0,0.3) 100%)',
             zIndex: 1,
           },
           '&::after': {
             content: '""',
             position: 'absolute',
             inset: 0,
-            background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 40%, transparent 70%)',
+            background:
+              'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 40%, transparent 70%)',
             zIndex: 2,
           },
         }}
       />
 
-      {/* Main Content */}
       <Box
         sx={{
           position: 'absolute',
@@ -167,45 +137,57 @@ function Banner() {
       >
         <Fade in={!isTransitioning} timeout={800}>
           <Box>
-            {/* Movie Info Chips */}
-            <Stack 
-              direction="row" 
-              spacing={1} 
-              sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}
+            <Typography
+              variant="overline"
+              sx={{
+                color: '#FFB800',
+                mb: 0.5,
+                fontWeight: 'bold',
+                textTransform: 'uppercase',
+                letterSpacing: 1,
+              }}
             >
-              <Chip
-                label={movie.genre}
-                size="small"
-                sx={{
-                  backgroundColor: '#FFB800',
-                  color: '#000',
-                  fontWeight: 'bold',
-                  fontSize: '0.75rem',
-                }}
-              />
-              <Chip
-                label={movie.rating}
-                size="small"
-                variant="outlined"
-                sx={{
-                  color: 'white',
-                  borderColor: 'rgba(255, 255, 255, 0.6)',
-                  fontSize: '0.75rem',
-                }}
-              />
-              <Chip
-                label={movie.duration}
-                size="small"
-                variant="outlined"
-                sx={{
-                  color: 'rgba(255, 255, 255, 0.8)',
-                  borderColor: 'rgba(255, 255, 255, 0.4)',
-                  fontSize: '0.75rem',
-                }}
-              />
-            </Stack>
+              {item.type === 'promotion' && '🎁 Ưu đãi'}
+              {item.type === 'movie' && '🎬 Phim hot'}
+              {item.type === 'news' && '📰 Tin tức điện ảnh'}
+            </Typography>
 
-            {/* Movie Title */}
+            {item.type === 'movie' && (
+              <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
+                <Chip
+                  label={item.genre}
+                  size="small"
+                  sx={{
+                    backgroundColor: '#FFB800',
+                    color: '#000',
+                    fontWeight: 'bold',
+                    fontSize: '0.75rem',
+                  }}
+                />
+                <Chip
+                  label={item.rating}
+                  size="small"
+                  variant="outlined"
+                  sx={{
+                    color: 'white',
+                    borderColor: 'rgba(255, 255, 255, 0.6)',
+                    fontSize: '0.75rem',
+                  }}
+                />
+                <Chip
+                  label={item.duration}
+                  size="small"
+                  variant="outlined"
+                  sx={{
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    borderColor: 'rgba(255, 255, 255, 0.4)',
+                    fontSize: '0.75rem',
+                  }}
+                />
+              </Stack>
+            )}
+
+            {/* Title */}
             <Typography
               variant="h2"
               component="h1"
@@ -219,10 +201,10 @@ function Banner() {
                 letterSpacing: '-0.02em',
               }}
             >
-              {movie.title}
+              {item.title}
             </Typography>
 
-            {/* Movie Description */}
+            {/* Description */}
             <Typography
               variant="body1"
               sx={{
@@ -234,132 +216,21 @@ function Banner() {
                 lineHeight: 1.6,
               }}
             >
-              {movie.description}
+              {item.description}
             </Typography>
-
-            {/* Action Buttons */}
-            <Stack 
-              direction={{ xs: 'column', sm: 'row' }} 
-              spacing={2}
-              sx={{ maxWidth: 400 }}
-            >
-              <Button
-                variant="contained"
-                size="large"
-                startIcon={<ShoppingCart />}
-                sx={{
-                  background: 'linear-gradient(135deg, #FFB800 0%, #FF8C00 100%)',
-                  boxShadow: '0 8px 25px rgba(255, 184, 0, 0.4)',
-                  fontWeight: 'bold',
-                  px: 4,
-                  py: 1.8,
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontSize: '1.1rem',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #FF8C00 0%, #FFB800 100%)',
-                    transform: 'translateY(-3px) scale(1.02)',
-                    boxShadow: '0 12px 30px rgba(255, 184, 0, 0.6)',
-                  },
-                }}
-              >
-                Mua vé ngay
-              </Button>
-              
-              <Button
-                variant="outlined"
-                size="large"
-                startIcon={<PlayArrow />}
-                sx={{
-                  borderColor: 'rgba(255, 255, 255, 0.7)',
-                  color: 'white',
-                  fontWeight: 'bold',
-                  px: 4,
-                  py: 1.8,
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontSize: '1.1rem',
-                  borderWidth: 2,
-                  backdropFilter: 'blur(10px)',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '&:hover': {
-                    borderColor: 'white',
-                    borderWidth: 2,
-                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 8px 20px rgba(255, 255, 255, 0.2)',
-                  },
-                }}
-              >
-                Xem trailer
-              </Button>
-            </Stack>
           </Box>
         </Fade>
       </Box>
 
-      {/* Navigation Arrows */}
-      <IconButton
-        onClick={handlePrev}
-        disabled={isTransitioning}
-        sx={{
-          position: 'absolute',
-          left: { xs: 12, md: 20 },
-          top: '50%',
-          transform: 'translateY(-50%)',
-          color: 'white',
-          backgroundColor: 'rgba(0, 0, 0, 0.4)',
-          backdropFilter: 'blur(10px)',
-          zIndex: 4,
-          width: { xs: 45, md: 55 },
-          height: { xs: 45, md: 55 },
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          '&:hover': {
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            transform: 'translateY(-50%) scale(1.1)',
-            borderColor: 'rgba(255, 255, 255, 0.4)',
-          },
-          '&:disabled': {
-            opacity: 0.4,
-          },
-        }}
-      >
+      {/* Arrows */}
+      <IconButton onClick={handlePrev} disabled={isTransitioning} sx={arrowStyle('left')}>
         <ArrowBackIos sx={{ fontSize: { xs: 20, md: 24 } }} />
       </IconButton>
-
-      <IconButton
-        onClick={handleNext}
-        disabled={isTransitioning}
-        sx={{
-          position: 'absolute',
-          right: { xs: 12, md: 20 },
-          top: '50%',
-          transform: 'translateY(-50%)',
-          color: 'white',
-          backgroundColor: 'rgba(0, 0, 0, 0.4)',
-          backdropFilter: 'blur(10px)',
-          zIndex: 4,
-          width: { xs: 45, md: 55 },
-          height: { xs: 45, md: 55 },
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          '&:hover': {
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            transform: 'translateY(-50%) scale(1.1)',
-            borderColor: 'rgba(255, 255, 255, 0.4)',
-          },
-          '&:disabled': {
-            opacity: 0.4,
-          },
-        }}
-      >
+      <IconButton onClick={handleNext} disabled={isTransitioning} sx={arrowStyle('right')}>
         <ArrowForwardIos sx={{ fontSize: { xs: 20, md: 24 } }} />
       </IconButton>
 
-      {/* Dots Indicator */}
+      {/* Dots */}
       <Box
         sx={{
           position: 'absolute',
@@ -371,7 +242,7 @@ function Banner() {
           zIndex: 4,
         }}
       >
-        {movieList.map((_, index) => (
+        {bannerData.map((_, index) => (
           <IconButton
             key={index}
             onClick={() => goToSlide(index)}
@@ -382,7 +253,7 @@ function Banner() {
               minWidth: 'unset',
               p: 0,
               color: index === currentIndex ? 'white' : 'rgba(255, 255, 255, 0.5)',
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              transition: 'all 0.3s ease',
               transform: index === currentIndex ? 'scale(1.4)' : 'scale(1)',
               '&:hover': {
                 color: 'white',
@@ -400,5 +271,28 @@ function Banner() {
     </Box>
   );
 }
+
+const arrowStyle = (position) => ({
+  position: 'absolute',
+  [position]: { xs: 12, md: 20 },
+  top: '50%',
+  transform: 'translateY(-50%)',
+  color: 'white',
+  backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  backdropFilter: 'blur(10px)',
+  zIndex: 4,
+  width: { xs: 45, md: 55 },
+  height: { xs: 45, md: 55 },
+  border: '1px solid rgba(255, 255, 255, 0.2)',
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    transform: 'translateY(-50%) scale(1.1)',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  '&:disabled': {
+    opacity: 0.4,
+  },
+});
 
 export default Banner;

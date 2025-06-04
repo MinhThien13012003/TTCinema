@@ -6,7 +6,7 @@ function SticketPrice() {
   return (
       <Button component="button" sx={{
         color: '#F8FAFC',
-        bgcolor: '#FFB800'
+        background: 'linear-gradient(135deg, #FFB800 0%, #FF8C00 100%)'
       }}>
         Giá Vé
       </Button>
