@@ -104,7 +104,7 @@ function AppBar() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <SvgIcon component={TTCine} fontSize='small' inheritViewBox />
           <Typography variant='span' sx={{ 
-            color: '#F8FAFC', 
+            color: '#FFB800', 
             fontSize: '1.2rem', 
             fontWeight: 'bold' 
           }}>
