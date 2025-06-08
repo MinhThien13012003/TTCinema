@@ -39,7 +39,7 @@ function Profile() {
     <Box>
       {!isLoggedIn ? (
         <Box sx={{ display: 'flex', gap: 2, color: '#F8FAFC' }}>
-          <Button color="inherit" variant="outlined" onClick={() => setShowLogin(true)}
+          <Button  color="inherit" variant="outlined" onClick={() => setShowLogin(true)}
             sx={{
                 border: 'none',
                 '&::after': {

@@ -23,7 +23,8 @@ const promotionData =[
     "applicable_days": ["Friday", "Saturday", "Sunday"],
     "min_purchase": 2,
     "max_discount": 50000,
-    "promo_code": "LOVE20"
+    "promo_code": "LOVE20",
+    "image": "https://cafephim.vn/wp-content/uploads/2020/03/89388368_2668905116664150_2867501831041318912_o-1.jpg"
   },
   {
     "promo_id": 3,

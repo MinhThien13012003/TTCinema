@@ -80,7 +80,6 @@ function LoginForm({ onSuccess }) {
         <Box sx={{ textAlign: 'center', mb: 4 }}>
           <Avatar
             sx={{
-              bgcolor: 'primary.main',
               width: 64,
               height: 64,
               mx: 'auto',
@@ -145,7 +144,7 @@ function LoginForm({ onSuccess }) {
           <Button
             type="submit"
             fullWidth
-            variant="contained"
+            variant="movie"
             size="large"
             disabled={isSubmitting}
             sx={{ mb: 2, py: 1.5 }}

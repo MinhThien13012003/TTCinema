@@ -4,10 +4,7 @@ import Stack from '@mui/material/Stack';
 
 function SticketPrice() {
   return (
-      <Button component="button" sx={{
-        color: '#F8FAFC',
-        background: 'linear-gradient(135deg, #FFB800 0%, #FF8C00 100%)'
-      }}>
+      <Button variant='movie' component="button">
         Giá Vé
       </Button>
   )

@@ -55,7 +55,7 @@ const colors = {
 const theme = extendTheme({
   
   palette: {
-    mode: 'dark',
+    mode: 'light',
     primary: colors.primary,
     secondary: colors.secondary,
     background: colors.background,
@@ -66,6 +66,9 @@ const theme = extendTheme({
     success: colors.success,
     info: colors.info,
     // Custom colors riêng cho TTCINE
+    
+  },
+  custom: {
     cinema: {
       gold: '#FFB800',
       goldLight: '#FFCA28',
@@ -82,26 +85,39 @@ const theme = extendTheme({
   },
   components: {
     
-    MuiButton: {
-    styleOverrides: {
-      root: {
-        textTransform: 'none',
-        fontWeight: 'bold',
-        '&:hover': {
-          textDecoration: 'none',
-        },
-        '&:focus': {
-          outline: 'none',
-        },
-        '&:focus-visible': {
-          outline: 'none',
-        },
-        '&:focus:not(:focus-visible)': {
-          outline: 'none',
+   MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          fontWeight: 'bold',
+          '&:hover': {
+            textDecoration: 'none',
+          },
+          '&:focus': {
+            outline: 'none',
+          },
+          '&:focus-visible': {
+            outline: 'none',
+          },
+          '&:focus:not(:focus-visible)': {
+            outline: 'none',
+          },
         },
       },
+      variants: [
+        {
+          props: { variant: 'movie' },
+          style: {
+            color: '#F8FAFC',
+            border: 'none',
+            background: 'linear-gradient(135deg, #FFB800 0%, #FF8C00 100%)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #FF9A00 0%, #FF7000 100%)',
+            },
+          },
+        },
+      ],
     },
-  },
     MuiInputLabel: {
       styleOverrides: {
         root: {
@@ -134,7 +150,7 @@ const theme = extendTheme({
     //     },
     //   },
     // },
-  },
-})
+  }
+});
 
 export default theme

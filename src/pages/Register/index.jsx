@@ -201,7 +201,7 @@ function RegisterForm({ onSuccess }) {
           <Button
             type="submit"
             fullWidth
-            variant="contained"
+            variant="movie"
             size="large"
             disabled={isSubmitting}
             sx={{ mb: 2, py: 1.5 }}
