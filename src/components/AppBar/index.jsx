@@ -130,8 +130,7 @@ function AppBar() {
           </Box>
         )}
 
-        {/* Right side - Search and Profile */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: '6px'}}>
             <TextField
               sx={{
                 minWidth: 120,

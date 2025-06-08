@@ -92,12 +92,6 @@ const MovieCard = ({ movie, isUpcoming = false }) => {
                 p: 2,
               }}
             >
-              <Box sx={{ color: 'white' }}>
-                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <StarOutlined sx={{ fontSize: 16 }} />
-                  {movie.rating || '8.5'}/10
-                </Typography>
-              </Box>
             </Box>
             <Chip
               label={isUpcoming ? 'Sắp chiếu' : 'Đang chiếu'}

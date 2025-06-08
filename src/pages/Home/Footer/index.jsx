@@ -106,7 +106,8 @@ function Footer() {
           </Typography>
           <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
             <IconButton
-              href="#"
+              href="https://www.facebook.com/?locale=vi_VN"
+              target="_blank"
               sx={{
                 bgcolor: "#1877f2",
                 color: "white",
@@ -123,7 +124,8 @@ function Footer() {
               <Facebook />
             </IconButton>
             <IconButton
-              href="#"
+              href="https://www.instagram.com/"
+              target ="_blank"
               sx={{
                 background: "linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)",
                 color: "white",
@@ -139,7 +141,8 @@ function Footer() {
               <Instagram />
             </IconButton>
             <IconButton
-              href="#"
+              href="https://www.youtube.com/"
+              target= "_blank"
               sx={{
                 bgcolor: "#ff0000",
                 color: "white",
