@@ -19,7 +19,7 @@ const PromotionCard = ({ promotion }) => {
         flexDirection: 'column',
         mr: 2,
         '&:hover': {
-          transform: 'translateY(-8px) scale(1.02)',
+          transform: 'translateY(-4px) scale(1.02)',
           boxShadow: '0 20px 40px rgba(74, 95, 217, 0.3)',
           border: '1px solid rgba(74, 95, 217, 1)',
         },

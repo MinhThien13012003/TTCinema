@@ -13,19 +13,21 @@ const MovieCard = ({ movie, isUpcoming = false }) => {
         position: 'relative',
         borderRadius: 3,
         overflow: 'hidden',
+        border: '1px solid rgba(255,184,0,0.2)',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         cursor: 'pointer',
         display: 'flex',
         flexDirection: 'column',
         mr: 2,
         '&:hover': {
-          transform: 'translateY(-8px) scale(1.02)',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+          transform: 'translateY(-4px) scale(1.0)',
+           boxShadow: '0 20px 40px rgba(74, 95, 217, 0.3)',
+          border: '1px solid rgba(74, 95, 217, 1)',
           '& .movie-overlay': {
             opacity: 1,
           }
         },
-        boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+        boxShadow: '0 8px 2px rgba(0,0,0,0.2)',
       }}
     >
       {movie.image && (
