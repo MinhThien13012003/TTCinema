@@ -1,28 +1,14 @@
-import React, { useState, useRef } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Card, 
-  CardContent, 
-  CardMedia, 
-  Chip,
-  Container,
-  Paper,
-  Fade,
-  IconButton,
-  Button
-} from '@mui/material';
-import { 
-  MovieOutlined, 
-  UpcomingOutlined, 
+import {
   LocalOfferOutlined,
-  CalendarTodayOutlined,
-  ArrowBackIos,
-  ArrowForwardIos
+  MovieOutlined,
+  UpcomingOutlined
 } from '@mui/icons-material';
+import {
+  Container
+} from '@mui/material';
+import dayjs from 'dayjs';
 import movieData from '../../../utils/movieData';
 import promotionData from '../../../utils/promotionData';
-import dayjs from 'dayjs';
 import SliderSection from './SliderSection';
 
 

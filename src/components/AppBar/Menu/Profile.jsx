@@ -1,21 +1,48 @@
-import React, { useState } from 'react'
+import AccountBoxIcon from '@mui/icons-material/AccountBox'
+import HistoryIcon from '@mui/icons-material/History'
+import Logout from '@mui/icons-material/Logout'
 import Avatar from '@mui/material/Avatar'
 import Box from '@mui/material/Box'
-import IconButton from '@mui/material/IconButton'
-import Tooltip from '@mui/material/Tooltip'
-import Menu from '@mui/material/Menu'
-import MenuItem from '@mui/material/MenuItem'
-import ListItemIcon from '@mui/material/ListItemIcon'
-import Divider from '@mui/material/Divider'
-import Logout from '@mui/icons-material/Logout'
-import Settings from '@mui/icons-material/Settings'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
-import DialogTitle from '@mui/material/DialogTitle'
+import IconButton from '@mui/material/IconButton'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
+import Tooltip from '@mui/material/Tooltip'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 // 🧩 Giả sử bạn có các form này
 import LoginForm from '../../../pages/Login'
 import RegisterForm from '../../../pages/Register'
+
+const UserMenu = ({ setAnchorEl, setIsLoggedIn }) => {
+  const navigate = useNavigate();
+
+  const handleGoToProfile = () => {
+    setAnchorEl(null);
+    navigate("/account/profile");
+  }
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setAnchorEl(null);
+  }
+
+  return (
+    <>
+      <MenuItem onClick={handleGoToProfile}>
+        <AccountBoxIcon sx={{ height: 28, width: 28, mr: 2 }} /> Tài khoản
+      </MenuItem>
+      <MenuItem onClick={() => setAnchorEl(null)}>
+        <HistoryIcon sx={{ height: 28, width: 28, mr: 2 }} /> Lịch sử 
+      </MenuItem>
+      <MenuItem onClick={handleLogout}>
+        <Logout sx={{ height: 28, width: 28, mr: 2 }} /> Đăng xuất
+      </MenuItem>
+    </>
+  );
+};
 
 function Profile() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -30,19 +57,17 @@ function Profile() {
     setShowRegister(false)
   }
 
-  const handleLogout = () => {
-    setIsLoggedIn(false)
-    setAnchorEl(null)
-  }
-
   return (
     <Box>
       {!isLoggedIn ? (
         <Box sx={{ display: 'flex', gap: 2, color: '#F8FAFC' }}>
-          <Button  color="inherit" variant="outlined" onClick={() => setShowLogin(true)}
+          <Button
+            color="inherit"
+            variant="outlined"
+            onClick={() => setShowLogin(true)}
             sx={{
-                border: 'none',
-                '&::after': {
+              border: 'none',
+              '&::after': {
                 content: '""',
                 position: 'absolute',
                 bottom: '4px',
@@ -54,15 +79,17 @@ function Profile() {
               },
               '&:hover::after': {
                 width: '100%',
-              }, 
-              }}
+              },
+            }}
           >
             Đăng nhập
           </Button>
-          <Button color="inherit"  onClick={() => setShowRegister(true)} 
+          <Button
+            color="inherit"
+            onClick={() => setShowRegister(true)}
             sx={{
-                border: 'none',
-                '&::after': {
+              border: 'none',
+              '&::after': {
                 content: '""',
                 position: 'absolute',
                 bottom: '4px',
@@ -74,8 +101,8 @@ function Profile() {
               },
               '&:hover::after': {
                 width: '100%',
-              }, 
-              }}
+              },
+            }}
           >
             Đăng ký
           </Button>
@@ -107,25 +134,7 @@ function Profile() {
               'aria-labelledby': 'basic-button-profile',
             }}
           >
-            <MenuItem onClick={() => setAnchorEl(null)}>
-              <Avatar sx={{ height: 28, width: 28, mr: 2 }} /> Profile
-            </MenuItem>
-            <MenuItem onClick={() => setAnchorEl(null)}>
-              <Avatar sx={{ height: 28, width: 28, mr: 2 }} /> My account
-            </MenuItem>
-            <Divider />
-            <MenuItem onClick={() => setAnchorEl(null)}>
-              <ListItemIcon>
-                <Settings fontSize="small" />
-              </ListItemIcon>
-              Settings
-            </MenuItem>
-            <MenuItem onClick={handleLogout}>
-              <ListItemIcon>
-                <Logout fontSize="small" />
-              </ListItemIcon>
-              Logout
-            </MenuItem>
+            <UserMenu setAnchorEl={setAnchorEl} setIsLoggedIn={setIsLoggedIn} />
           </Menu>
         </>
       )}
@@ -140,7 +149,7 @@ function Profile() {
         <RegisterForm onSuccess={handleLoginSuccess} />
       </Dialog>
     </Box>
-  )
+  );
 }
 
-export default Profile
+export default Profile;
