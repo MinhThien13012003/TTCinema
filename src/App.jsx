@@ -11,33 +11,23 @@ import Booking from './pages/Booking';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Container from '@mui/material/Container';
+import AccountProfile from './components/AppBar/Menu/AccountProfile';
 // Pages admin
 import AdminDashboard from './pages/Admin/Dashboard';
 import AdminMovies from './pages/Admin/Movies';
 
 function App() {
   return (
-      <Container
-        disableGutters
-        maxWidth={false}
-        sx={{
-          height: '100vh',       // Chiều cao toàn màn hình
-          width: '100vw',        // Chiều rộng toàn màn hình
-          display: 'flex',       // Flex để layout hoạt động đúng
-          flexDirection: 'column', 
-          bgcolor: '#f0f0f0',    // Màu nền nhẹ (tuỳ chỉnh)
-          overflow: 'hidden',    // Tránh tràn layout
-        }}
-      >
       <BrowserRouter>
         <Routes>
           {/* Layout chính cho người dùng */}
           <Route element={<MainLayout />}>
-            <Route path={PATH.HOME} element={<Home />} />
+            <Route index element={<Home />} />
             <Route path={PATH.MOVIE_DETAIL()} element={<MovieDetail />} />
             <Route path={PATH.BOOKING()} element={<Booking />} />
             <Route path={PATH.LOGIN} element={<Login />} />
             <Route path={PATH.REGISTER} element={<Register />} />
+            <Route path={PATH.ACCOUNTPROFILE} element={<AccountProfile />} />
           </Route>
 
 
@@ -48,7 +38,6 @@ function App() {
           </Route>
         </Routes>
       </BrowserRouter>
-      </Container>
   );
 }
 
