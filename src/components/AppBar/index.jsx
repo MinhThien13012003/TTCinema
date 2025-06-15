@@ -14,10 +14,9 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
 import { useState } from 'react'
 import TTCine from '../../assets/TTCine.svg?react'
-import Movie from './Menu/Movie'
 import Profile from './Menu/Profile'
 import ShowTime from './Menu/ShowTime'
-import SticketPrice from './Menu/SticketPrice'
+import BookingSticket from './Menu/BookingSticket'
 import MainPage from './Menu/MainPages'
 
 function AppBar() {
@@ -68,11 +67,7 @@ function AppBar() {
             <MainPage />
           </MenuItemStyled>
         </ListItem>
-        <ListItem sx={{ p: 0 }}>
-          <MenuItemStyled sx={{ width: '100%', justifyContent: 'flex-start' }}>
-            <Movie />
-          </MenuItemStyled>
-        </ListItem>
+
         <ListItem sx={{ p: 0 }}>
           <MenuItemStyled sx={{ width: '100%', justifyContent: 'flex-start' }}>
             <ShowTime />
@@ -80,7 +75,7 @@ function AppBar() {
         </ListItem>
         <ListItem sx={{ p: 0 }}>
           <MenuItemStyled sx={{ width: '100%', justifyContent: 'flex-start' }}>
-            <SticketPrice />
+            <BookingSticket />
           </MenuItemStyled>
         </ListItem>
       </List>
@@ -90,7 +85,7 @@ function AppBar() {
   return (
     <>
       <Box sx={{
-        px: 2,
+        px: 12,
         width: '100%',
         display: 'flex',
         alignItems: 'center',
@@ -99,6 +94,7 @@ function AppBar() {
         overflow: 'hidden',
         height: '100%',
         backgroundColor: '#16213e',
+        margin: '0 auto',
       }}>
         {/* Logo */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -119,13 +115,10 @@ function AppBar() {
               <MainPage />
             </MenuItemStyled>
             <MenuItemStyled>
-              <Movie />
+              <BookingSticket />
             </MenuItemStyled>
             <MenuItemStyled>
               <ShowTime />
-            </MenuItemStyled>
-            <MenuItemStyled>
-              <SticketPrice />
             </MenuItemStyled>
           </Box>
         )}

@@ -7,79 +7,93 @@ import Box from '@mui/material/Box';
 import { Outlet } from "react-router-dom";
 
 function Home() {
+  const backgroundColor = '#16213e'; // Định nghĩa màu nền chung
+
   return (
-    <Container 
-      disableGutters 
-      maxWidth={false} 
-      sx={{
-        display: 'grid',
-        minHeight: '100vh', // Thay đổi từ height sang minHeight
-        gridTemplateRows: ' 400px 1fr auto',
-        gridTemplateAreas: `
-          
-          "banner"
-          "content"
-          "footer"
-        `,
-        // Loại bỏ overflow: 'auto' để tránh conflict
-        '@media (max-width: 768px)': {
-          gridTemplateRows: '50px 300px 1fr auto', // Banner nhỏ hơn trên mobile
-        },
-        '@media (max-width: 480px)': {
-          gridTemplateRows: '50px 250px 1fr auto', // Banner còn nhỏ hơn trên mobile nhỏ
-        }
-      }}
-    >
+    <>
+      {/* Tạo background fullwidth */}
+      <Box sx={{ 
+        bgcolor: backgroundColor, 
+        minHeight: '100vh',
+        width: '100%',
+        position: 'relative'
+      }}>
+        <Container 
+          disableGutters 
+          maxWidth="lg" 
+          sx={{ 
+            display: 'grid',
+            minHeight: '100vh',
+            gridTemplateRows: '400px 1fr auto',
+            gridTemplateAreas: `
+              "banner"
+              "content"
+              "footer"
+            `,
+            bgcolor: 'transparent', // Trong suốt để hiển thị background bên ngoài
+            margin: '0 auto',
+            padding: 0,
+          }}>
       {/* <Box 
         sx={{ 
           gridArea: 'header', 
-          bgcolor: '#2C84D6', 
+          bgcolor: backgroundColor, // Sử dụng màu nền chung
           position: 'sticky', 
           top: 0, 
           zIndex: 1000,
-          width: '100%' // Đảm bảo full width
-        }}
-      >
+          width: '100%'
+        }}>
         <AppBar />
       </Box> */}
-      
+
       <Box 
         sx={{ 
-          gridArea: 'banner', 
-          alignItems: 'center', 
-          display: 'flex', 
-          justifyContent: 'center', 
-          background: 'linear-gradient(135deg, #4A5FD9 0%, #6B73E0 25%, #8A87E7 50%, #B5A5E8 75%, #ffd700 100%)',
+          gridArea: 'banner',
+          alignItems: 'center',
+          display: 'flex',
+          justifyContent: 'center',
+          background: backgroundColor,
           width: '100%',
-          overflow: 'hidden' // Tránh overflow trong banner
-        }}
-      >
+          overflow: 'hidden'
+        }}>
         <Banner />
       </Box>
-      
+
       <Box 
         sx={{ 
           gridArea: 'content',
           width: '100%',
           overflowY: 'auto',
           overflowX: 'hidden',
-          minHeight: 0, // Quan trọng: cho phép flex shrink trong grid
+          minHeight: 0,
           display: 'flex',
-          flexDirection: 'column'
-        }}
-      >
-        <MainContent />
+          flexDirection: 'column',
+          alignItems: 'center',
+          bgcolor: backgroundColor, // Thêm màu nền cho content area
+          padding: 0, // Đảm bảo không có padding tạo khoảng trắng
+        }}>
+        {/* Căn giữa nội dung tại đây */}
+        <Box sx={{ 
+          width: '90%', 
+          maxWidth: '1200px',
+          bgcolor: backgroundColor, // Thêm màu nền cho box con
+          minHeight: '100%', // Đảm bảo chiều cao tối thiểu
+        }}>
+          <MainContent />
+        </Box>
       </Box>
-      
+
       <Box 
         sx={{ 
           gridArea: 'footer',
-          width: '100%'
-        }}
-      >
+          width: '100%',
+          bgcolor: backgroundColor, // Thêm màu nền cho footer
+        }}>
         <Footer />
       </Box>
     </Container>
+    </Box>
+    </>
   )
 }
 

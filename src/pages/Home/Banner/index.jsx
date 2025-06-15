@@ -68,7 +68,7 @@ function Banner() {
       sx={{
         position: 'relative',
         display: 'flex',
-        width: '80%',
+        width: '85%',
         height: '100%',
         overflow: 'hidden',
         boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
