@@ -20,20 +20,20 @@ import BookingSticket from './Menu/BookingSticket'
 import MainPage from './Menu/MainPages'
 
 function AppBar() {
-  const [searchValue, setSearchValue] = useState('')
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const [searchValue, setSearchValue] = useState('');
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen)
-  }
+    setMobileOpen(!mobileOpen);
+  };
 
   // Styled component cho menu items với hover effect
   const MenuItemStyled = ({ children, ...props }) => (
     <Box
       {...props}
-      sx={{
+      sx={({
         position: 'relative',
         cursor: 'pointer',
         padding: '8px 12px',
@@ -51,17 +51,17 @@ function AppBar() {
         '&:hover::after': {
           width: '100%',
         },
-        ...props.sx
-      }}
+        ...props.sx,
+      })}
     >
       {children}
     </Box>
-  )
+  );
 
   // Mobile drawer content
   const drawer = (
-    <Box sx={{ width: 250, height: '100%',bgcolor:'#16213e' }}>
-      <List sx={{gap:2}}>
+    <Box sx={{ width: 250, height: '100%', bgcolor: '#16213e' }}>
+      <List sx={{ gap: 2 }}>
         <ListItem sx={{ p: 0 }}>
           <MenuItemStyled sx={{ width: '100%', justifyContent: 'flex-start' }}>
             <MainPage />
@@ -73,6 +73,7 @@ function AppBar() {
             <ShowTime />
           </MenuItemStyled>
         </ListItem>
+
         <ListItem sx={{ p: 0 }}>
           <MenuItemStyled sx={{ width: '100%', justifyContent: 'flex-start' }}>
             <BookingSticket />
@@ -80,37 +81,34 @@ function AppBar() {
         </ListItem>
       </List>
     </Box>
-  )
+  );
 
   return (
     <>
-      <Box sx={{
-        px: 12,
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 2,
-        overflow: 'hidden',
-        height: '100%',
-        backgroundColor: '#16213e',
-        margin: '0 auto',
-      }}>
+      <Box
+        sx={{ 
+          px: isMobile ? 2 : 12,
+          width: '100%', 
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 2,
+          overflow: 'hidden',
+          height: '100%', 
+          backgroundColor: '#16213e',
+          margin: '0 auto',
+        }}>
         {/* Logo */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <SvgIcon component={TTCine} fontSize='small' inheritViewBox />
-          <Typography variant='span' sx={{ 
-            color: '#FFB800', 
-            fontSize: '1.2rem', 
-            fontWeight: 'bold' 
-          }}>
+          <Typography variant='span' sx={{ color: '#FFB800', fontSize: '1.2rem', fontWeight: 'bold' }}>
             TTCINE
           </Typography>
         </Box>
 
         {/* Desktop Menu */}
         {!isMobile && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <MenuItemStyled>
               <MainPage />
             </MenuItemStyled>
@@ -123,84 +121,70 @@ function AppBar() {
           </Box>
         )}
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: '6px'}}>
-            <TextField
-              sx={{
-                minWidth: 120,
-                maxWidth: isMobile ? 140 : 170,
-                '& label': { color: 'white' },
-                '& input': { color: 'white' },
-                '& label.Mui-focused': { color: 'white' },
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': { borderColor: 'white' },
-                  '&:hover fieldset': { borderColor: 'white' },
-                  '&.Mui-focused fieldset': { borderColor: 'white' }
-                }
-              }}
-              id="outlined-search"
-              label="Search..."
-              size='small'
-              type="text"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
+        {/* Search + Profile + Menu icon*/}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: isMobile ? 0 : '6px' }}>
+          <TextField
+            sx={{ 
+              minWidth: isMobile ? 100 : 140,
+              maxWidth: isMobile ? 140 : 170,
+              '& label': { color: 'white' },
+              '& input': { color: 'white' },
+              '& label.Mui-focused': { color: 'white' },
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': { borderColor: 'white' },
+                '&:hover fieldset': { borderColor: 'white' },
+                '&.Mui-focused fieldset': { borderColor: 'white' },
+              },
+            }}
+            id='outlined-search'
+            label='Search...'
+            size='small'
+            type='text'
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            InputProps={{ 
+              startAdornment: (
+                <InputAdornment position='start'>
                     <Search sx={{ color: 'white' }} />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <Close
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <Close
                     fontSize='small'
-                    sx={{
-                      color: searchValue ? 'white' : 'transparent',
-                      cursor: 'pointer'
-                    }}
+                    sx={{ color: searchValue ? 'white' : 'transparent', cursor: 'pointer' }}
                     onClick={() => setSearchValue('')}
-                  />
-                )
-              }}
-            />
+                />
+              )
+            }}
+          />
+
           <Profile />
 
           {/* Hamburger Menu cho mobile */}
           {isMobile && (
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              edge="start"
-              onClick={handleDrawerToggle}
-              sx={{ 
-                color: 'white'
-              }}
-            >
+            <IconButton color='inherit' aria-label='open drawer' edge='start' onClick={handleDrawerToggle}>
               <MenuIcon />
             </IconButton>
           )}
+
         </Box>
       </Box>
 
       {/* Mobile Drawer */}
       <Drawer
-        variant="temporary"
-        anchor="right"
+        variant='temporary'
+        anchor='right'
         open={mobileOpen}
         onClose={handleDrawerToggle}
-        ModalProps={{
-          keepMounted: true, // Better open performance on mobile.
-        }}
-        sx={{
+        ModalProps={{ keepMounted: true }} // Better open performance on mobile.
+        sx={{ 
           display: { xs: 'block', md: 'none' },
-          '& .MuiDrawer-paper': { 
-            boxSizing: 'border-box', 
-            width: 250
-          },
-        }}
-      >
+          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 250 },
+        }}>
         {drawer}
       </Drawer>
     </>
-  )
+  );
 }
 
-export default AppBar
+export default AppBar;

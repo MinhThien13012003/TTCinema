@@ -11,6 +11,7 @@ import MenuItem from '@mui/material/MenuItem'
 import Tooltip from '@mui/material/Tooltip'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 
 // 🧩 Giả sử bạn có các form này
 import LoginForm from '../../../pages/Login'
@@ -60,8 +61,9 @@ function Profile() {
   return (
     <Box>
       {!isLoggedIn ? (
-        <Box sx={{ display: 'flex', gap: 2, color: '#F8FAFC' }}>
+        <Box sx={{ display: 'flex', gap: 0.5, color: '#F8FAFC' }}>
           <Button
+            startIcon={<AccountCircleOutlinedIcon sx={{ width: 24, height: 24 }} />}
             color="inherit"
             variant="outlined"
             onClick={() => setShowLogin(true)}
@@ -83,28 +85,6 @@ function Profile() {
             }}
           >
             Đăng nhập
-          </Button>
-          <Button
-            color="inherit"
-            onClick={() => setShowRegister(true)}
-            sx={{
-              border: 'none',
-              '&::after': {
-                content: '""',
-                position: 'absolute',
-                bottom: '4px',
-                left: 0,
-                width: 0,
-                height: '2px',
-                backgroundColor: '#4A5FD9',
-                transition: 'width 0.3s ease',
-              },
-              '&:hover::after': {
-                width: '100%',
-              },
-            }}
-          >
-            Đăng ký
           </Button>
         </Box>
       ) : (
@@ -139,15 +119,25 @@ function Profile() {
         </>
       )}
 
-      {/* Dialog Đăng nhập */}
-      <Dialog open={showLogin} onClose={() => setShowLogin(false)}>
-        <LoginForm onSuccess={handleLoginSuccess} />
-      </Dialog>
+     <Dialog open={showLogin} onClose={() => setShowLogin(false)}>
+  <LoginForm
+    onSuccess={handleLoginSuccess}
+    onSwitchToRegister={() => {
+      setShowLogin(false);
+      setShowRegister(true);
+    }}
+  />
+</Dialog>
 
-      {/* Dialog Đăng ký */}
-      <Dialog open={showRegister} onClose={() => setShowRegister(false)}>
-        <RegisterForm onSuccess={handleLoginSuccess} />
-      </Dialog>
+<Dialog open={showRegister} onClose={() => setShowRegister(false)}>
+  <RegisterForm
+    onSuccess={handleLoginSuccess}
+    onSwitchToLogin={() => {
+      setShowRegister(false);
+      setShowLogin(true);
+    }}
+  />
+</Dialog>
     </Box>
   );
 }

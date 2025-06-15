@@ -10,7 +10,8 @@ import {
   CircularProgress,
   Divider,
   Link,
-  Container
+  Container,
+  Dialog
 } from '@mui/material'
 import {
   Visibility,
@@ -22,12 +23,15 @@ import {
   Facebook,
   GitHub
 } from '@mui/icons-material'
+import RegisterForm from '../Register'
 
-function LoginForm({ onSuccess }) {
+
+function LoginForm({ onSuccess, onSwitchToRegister }) {
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showRegister, setShowRegister] = useState(false)
 
   const validateForm = () => {
     const newErrors = {}
@@ -160,14 +164,12 @@ function LoginForm({ onSuccess }) {
           </Button>
         </Box>
 
-        {/* Divider */}
-        <Divider sx={{ my: 3 }}>
+        {/* <Divider sx={{ my: 3 }}>
           <Typography variant="body2" color="text.secondary">
             Hoặc đăng nhập với
           </Typography>
         </Divider>
 
-        {/* Social */}
         <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
           <Button
             variant="outlined"
@@ -193,13 +195,14 @@ function LoginForm({ onSuccess }) {
           >
             GitHub
           </Button>
-        </Box>
+        </Box> */}
 
         {/* Footer */}
         <Box sx={{ textAlign: 'center' }}>
           <Typography variant="body2" color="text.secondary">
             Chưa có tài khoản?{' '}
             <Link
+              onClick={onSwitchToRegister}
               href="#"
               underline="hover"
               sx={{ fontWeight: 600, color: 'primary.main' }}
@@ -210,6 +213,8 @@ function LoginForm({ onSuccess }) {
         </Box>
       </Box>
     </Container>
+
+    
   )
 }
 

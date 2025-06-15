@@ -10,7 +10,8 @@ import {
   CircularProgress,
   Divider,
   Link,
-  Container
+  Container,
+  Dialog
 } from '@mui/material'
 import {
   Visibility,
@@ -24,8 +25,9 @@ import {
   Facebook,
   GitHub
 } from '@mui/icons-material'
+import LoginForm from '../Login'
 
-function RegisterForm({ onSuccess }) {
+function RegisterForm({ onSuccess, onSwitchToLogin }) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -36,6 +38,14 @@ function RegisterForm({ onSuccess }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showLogin, setShowLogin] = useState(false)
+  const [showRegister, setShowRegister] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const handleLoginSuccess = () => {
+    setIsLoggedIn(true)
+    setShowLogin(false)
+    setShowRegister(false)
+  }
 
   const validateForm = () => {
     const newErrors = {}
@@ -217,7 +227,7 @@ function RegisterForm({ onSuccess }) {
           </Button>
         </Box>
 
-        <Divider sx={{ my: 3 }}>
+        {/* <Divider sx={{ my: 3 }}>
           <Typography variant="body2" color="text.secondary">
             Hoặc đăng ký với
           </Typography>
@@ -248,12 +258,13 @@ function RegisterForm({ onSuccess }) {
           >
             GitHub
           </Button>
-        </Box>
+        </Box> */}
 
         <Box sx={{ textAlign: 'center' }}>
           <Typography variant="body2" color="text.secondary">
             Đã có tài khoản?{' '}
             <Link
+            onClick= {onSwitchToLogin}
               href="#"
               underline="hover"
               sx={{ fontWeight: 600, color: 'primary.main' }}
