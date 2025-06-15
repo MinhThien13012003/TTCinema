@@ -2,12 +2,12 @@ import * as React from 'react';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 
-function SticketPrice() {
+function BookingSticket() {
   return (
       <Button variant='movie' component="button">
-        Giá Vé
+        Đặt Vé  
       </Button>
   )
 }
 
-export default SticketPrice
+export default BookingSticket

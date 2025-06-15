@@ -1,14 +1,18 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { Box, IconButton, Paper, Typography } from '@mui/material';
+import React, { useRef, useState } from 'react';
+import { Box, IconButton, Paper, Typography, Modal } from '@mui/material';
 import { ArrowBackIos, ArrowForwardIos } from '@mui/icons-material';
 import MovieCard from '../MovieCard';
 import PromotionCard from '../PromotionCard';
 import SectionHeader from '../SectionHeader';
+import ButtonGroupTrailerBooking from '../../../../components/ButtonGroupTrailerBooking';
 
 const SliderSection = ({ title, icon, subtitle, items, type }) => {
   const scrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [openTrailer, setOpenTrailer] = useState(null);
+
   const [canScrollRight, setCanScrollRight] = useState(true);
+
 
   const checkScrollButtons = () => {
     if (scrollRef.current) {
@@ -33,6 +37,7 @@ const SliderSection = ({ title, icon, subtitle, items, type }) => {
       setTimeout(checkScrollButtons, 300);
     }
   };
+  
 
   React.useEffect(() => {
     checkScrollButtons();
@@ -123,13 +128,62 @@ const SliderSection = ({ title, icon, subtitle, items, type }) => {
         >
           {items.map((item, index) => (
             type === 'movie' ? (
-              <MovieCard key={index} movie={item} isUpcoming={title.includes('Sắp Chiếu')} />
+              <Box
+  key={index}
+  sx={{
+    display: 'inline-flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    m: 1
+  }}
+>
+  <MovieCard movie={item} isUpcoming={title.includes('Sắp Chiếu')} />
+  <ButtonGroupTrailerBooking
+        onWatchTrailer={() => setOpenTrailer(item.trailer)}
+        onBookTicket={() => console.log('Đặt vé cho', item.ten_phim)}
+      />
+</Box>
             ) : (
               <PromotionCard key={index} promotion={item} />
             )
           ))}
         </Box>
       )}
+      <Modal open={Boolean(openTrailer)} onClose={() => setOpenTrailer(null)}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '80%',
+            maxWidth: 800,
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            borderRadius: 2,
+            p: 2,
+            outline: 'none',
+          }}
+        >
+          <Box sx={{ position: 'relative', paddingTop: '56.25%' }}>
+            <iframe
+              src={openTrailer?.replace('watch?v=', 'embed/')}
+              title="Trailer"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                border: 'none'
+              }}
+            />
+          </Box>
+        </Box>
+      </Modal>
     </Box>
   );
 };

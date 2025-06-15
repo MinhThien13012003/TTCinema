@@ -1,12 +1,23 @@
 import React from 'react';
-import { Box, Button, Card, CardContent, CardMedia, Chip, Typography } from '@mui/material';
-import { CalendarTodayOutlined } from '@mui/icons-material';
+import {
+  Box,
+  Card,
+  CardContent,
+  CardMedia,
+  Chip,
+  Typography
+} from '@mui/material';
+import {
+  CalendarTodayOutlined,
+  AccessTime,
+  Language
+} from '@mui/icons-material';
 import dayjs from 'dayjs';
 
 const MovieCard = ({ movie, isUpcoming = false }) => {
   return (
-    <Card 
-      sx={{ 
+    <Card
+      sx={{
         minWidth: '280px',
         maxWidth: '280px',
         height: '450px',
@@ -14,36 +25,32 @@ const MovieCard = ({ movie, isUpcoming = false }) => {
         borderRadius: 3,
         overflow: 'hidden',
         border: '1px solid rgba(255,184,0,0.2)',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: 'all 0.3s ease',
         cursor: 'pointer',
         display: 'flex',
         flexDirection: 'column',
         mr: 2,
-        '&:hover': {
-          transform: 'translateY(-4px) scale(1.0)',
-           boxShadow: '0 20px 40px rgba(74, 95, 217, 0.3)',
-          border: '1px solid rgba(74, 95, 217, 1)',
-          '& .movie-overlay': {
-            opacity: 1,
-          }
+        '&:hover .movie-overlay': {
+          opacity: 1,
         },
         boxShadow: '0 8px 2px rgba(0,0,0,0.2)',
       }}
     >
+      {/* Hình ảnh */}
       {movie.image && (
-        <Box sx={{ position: 'relative', overflow: 'hidden', height: '320px' }}>
+        <Box sx={{ position: 'relative', height: '320px' }}>
           <CardMedia
             component="img"
-            height="320"
             image={movie.image}
             alt={movie.ten_phim}
-            sx={{ 
-              transition: 'transform 0.3s ease',
+            sx={{
               objectFit: 'cover',
               width: '100%',
               height: '100%',
             }}
           />
+
+          {/* Overlay chi tiết */}
           <Box
             className="movie-overlay"
             sx={{
@@ -52,30 +59,48 @@ const MovieCard = ({ movie, isUpcoming = false }) => {
               left: 0,
               right: 0,
               bottom: 0,
-              background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)',
+              backgroundColor: 'rgba(0,0,0,0.85)',
               opacity: 0,
               transition: 'opacity 0.3s ease',
+              color: '#fff',
               display: 'flex',
-              alignItems: 'flex-end',
-              p: 2,
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              px: 2,
+              textAlign: 'center'
             }}
           >
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: '#FFB800',
-                color: '#F8FAFC',
-                fontWeight: 'bold',
-                borderRadius: 2,
-                px: 3,
-                '&:hover': {
-                  backgroundColor: '#E6A600',
-                }
-              }}
-            >
-              MUA VÉ
-            </Button>
+            <Typography variant="subtitle1" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <AccessTime sx={{ fontSize: 16 }} /> {movie.thoi_luong} phút
+            </Typography>
+            <Typography variant="subtitle1" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Language sx={{ fontSize: 16 }} /> {movie.ngon_ngu}
+            </Typography>
+            <Typography variant="subtitle1">
+              🎧 {movie.phien_dich}
+            </Typography>
           </Box>
+
+          {/* Nhãn phân loại */}
+          {movie.nhan_phim && (
+            <Chip
+              label={movie.nhan_phim}
+              size="small"
+              sx={{
+                position: 'absolute',
+                top: 12,
+                left: 12,
+                fontWeight: 'bold',
+                fontSize: '0.75rem',
+                borderRadius: 1,
+                backgroundColor: '#DC2626',
+                color: '#fff'
+              }}
+            />
+          )}
+
+          {/* Trạng thái chiếu */}
           <Chip
             label={isUpcoming ? 'Sắp chiếu' : 'Đang chiếu'}
             size="small"
@@ -91,20 +116,24 @@ const MovieCard = ({ movie, isUpcoming = false }) => {
           />
         </Box>
       )}
-      <CardContent sx={{ 
-        p: 2, 
-        bgcolor:'#1a1a2e', 
-        height: '130px', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        justifyContent: 'space-between',
-        flex: 1
-      }}>
+
+      {/* Nội dung dưới ảnh */}
+      <CardContent
+        sx={{
+          p: 2,
+          bgcolor: '#1a1a2e',
+          height: '130px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          flex: 1
+        }}
+      >
         <Box sx={{ flex: 1 }}>
-          <Typography 
-            variant="h6" 
-            fontWeight="bold" 
-            sx={{ 
+          <Typography
+            variant="h6"
+            fontWeight="bold"
+            sx={{
               mb: 1,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -115,11 +144,10 @@ const MovieCard = ({ movie, isUpcoming = false }) => {
           >
             {movie.ten_phim}
           </Typography>
-          <Typography 
-            variant="body2" 
-            sx={{ 
+          <Typography
+            variant="body2"
+            sx={{
               color: '#94A3B8',
-              mb: 1,
               display: '-webkit-box',
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
@@ -131,15 +159,22 @@ const MovieCard = ({ movie, isUpcoming = false }) => {
             {movie.mo_ta}
           </Typography>
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 'auto' }}>
-          <CalendarTodayOutlined sx={{ fontSize: 14, color: '#94A3B8' }} />
-          <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '0.75rem' }}>
-            {isUpcoming 
-              ? `${dayjs(movie.ngay_cong_chieu).format('DD.MM.YYYY')}`
-              : `Đến ${dayjs(movie.ngay_ket_thuc).format('DD.MM.YYYY')}`
-            }
-          </Typography>
-        </Box>
+
+        <Typography
+          variant="caption"
+          sx={{
+            color: '#94A3B8',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.5,
+            mt: 1
+          }}
+        >
+          <CalendarTodayOutlined sx={{ fontSize: 14 }} />
+          {isUpcoming
+            ? dayjs(movie.ngay_cong_chieu).format('DD.MM.YYYY')
+            : `Đến ${dayjs(movie.ngay_ket_thuc).format('DD.MM.YYYY')}`}
+        </Typography>
       </CardContent>
     </Card>
   );
