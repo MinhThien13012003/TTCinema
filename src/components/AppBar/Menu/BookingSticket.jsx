@@ -1,13 +1,20 @@
+// BookingSticket.jsx
 import * as React from 'react';
 import Button from '@mui/material/Button';
-import Stack from '@mui/material/Stack';
+import { useNavigate } from 'react-router-dom';
 
 function BookingSticket() {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate('/booking'); // chuyển sang trang booking
+  };
+
   return (
-      <Button variant='movie' component="button">
-        Đặt Vé  
-      </Button>
-  )
+    <Button variant='movie'  onClick={handleClick}>
+      Đặt Vé
+    </Button>
+  );
 }
 
-export default BookingSticket
+export default BookingSticket;

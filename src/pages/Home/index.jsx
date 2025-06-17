@@ -82,15 +82,6 @@ function Home() {
           <MainContent />
         </Box>
       </Box>
-
-      <Box 
-        sx={{ 
-          gridArea: 'footer',
-          width: '100%',
-          bgcolor: backgroundColor, // Thêm màu nền cho footer
-        }}>
-        <Footer />
-      </Box>
     </Container>
     </Box>
     </>
