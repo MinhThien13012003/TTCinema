@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Typography, Link, Grid, IconButton, Divider } from "@mui/material";
 import { Facebook, Instagram, YouTube, Email, Phone, LocationOn } from "@mui/icons-material";
-import TTCine from '../../../assets/TTCine.svg?react'; // Import your SVG logo
+import TTCine from '../../assets/TTCine.svg?react'; // Import your SVG logo
 import { default as SvgIcon } from '@mui/icons-material/Apps'
 
 function Footer() {
@@ -11,6 +11,7 @@ function Footer() {
       sx={{
         background: '#16213e',
         color: "white",
+        marginTop: 1,
         py: 6,
         px: { xs: 3, sm: 6, md: 8 },
         position: "relative",

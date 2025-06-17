@@ -5,8 +5,10 @@ import MovieCard from '../MovieCard';
 import PromotionCard from '../PromotionCard';
 import SectionHeader from '../SectionHeader';
 import ButtonGroupTrailerBooking from '../../../../components/ButtonGroupTrailerBooking';
+import { useNavigate } from 'react-router-dom';
 
 const SliderSection = ({ title, icon, subtitle, items, type }) => {
+  
   const scrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [openTrailer, setOpenTrailer] = useState(null);
@@ -45,6 +47,7 @@ const SliderSection = ({ title, icon, subtitle, items, type }) => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [items]);
+  const navigate = useNavigate();
 
   return (
     <Box sx={{ mb: 6 }}>
@@ -141,7 +144,7 @@ const SliderSection = ({ title, icon, subtitle, items, type }) => {
   <MovieCard movie={item} isUpcoming={title.includes('Sắp Chiếu')} />
   <ButtonGroupTrailerBooking
         onWatchTrailer={() => setOpenTrailer(item.trailer)}
-        onBookTicket={() => console.log('Đặt vé cho', item.ten_phim)}
+        onBookTicket={() => {navigate(`/movie/${item.phim_id}`);}}
       />
 </Box>
             ) : (
