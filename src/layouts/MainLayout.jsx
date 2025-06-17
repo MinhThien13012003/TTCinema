@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom';
 import AppBar from '../components/AppBar';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
-import Footer from '../pages/Home/Footer';
+import Footer from '../components/Footer';
 function MainLayout() {
   const backgroundColor = '#16213e';
   return (
@@ -18,7 +18,8 @@ function MainLayout() {
         bgcolor: backgroundColor,
         borderBottom: 'none',
         display: 'flex',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        paddingBottom: 1
       }}>
         <Container 
           disableGutters

@@ -137,7 +137,6 @@ function AppBar() {
               },
             }}
             id='outlined-search'
-            label='Search...'
             size='small'
             type='text'
             value={searchValue}

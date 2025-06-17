@@ -2,7 +2,7 @@ import { Container } from '@mui/material';
 import AppBar from '../../components/AppBar';
 import Banner from '../Home/Banner';
 import MainContent from '../Home/MainContent';
-import Footer from '../Home/Footer';
+import Footer from '../../components/Footer';
 import Box from '@mui/material/Box';
 import { Outlet } from "react-router-dom";
 
