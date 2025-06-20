@@ -15,7 +15,6 @@ import { useTheme } from '@mui/material/styles'
 import { useState } from 'react'
 import TTCine from '../../assets/TTCine.svg?react'
 import Profile from './Menu/Profile'
-import ShowTime from './Menu/ShowTime'
 import BookingSticket from './Menu/BookingSticket'
 import MainPage from './Menu/MainPages'
 
@@ -70,12 +69,6 @@ function AppBar() {
 
         <ListItem sx={{ p: 0 }}>
           <MenuItemStyled sx={{ width: '100%', justifyContent: 'flex-start' }}>
-            <ShowTime />
-          </MenuItemStyled>
-        </ListItem>
-
-        <ListItem sx={{ p: 0 }}>
-          <MenuItemStyled sx={{ width: '100%', justifyContent: 'flex-start' }}>
             <BookingSticket />
           </MenuItemStyled>
         </ListItem>
@@ -114,9 +107,6 @@ function AppBar() {
             </MenuItemStyled>
             <MenuItemStyled>
               <BookingSticket />
-            </MenuItemStyled>
-            <MenuItemStyled>
-              <ShowTime />
             </MenuItemStyled>
           </Box>
         )}

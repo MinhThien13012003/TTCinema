@@ -7,7 +7,7 @@ function BookingSticket() {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate('/booking'); // chuyển sang trang booking
+    navigate('/movie'); // chuyển sang trang booking
   };
 
   return (

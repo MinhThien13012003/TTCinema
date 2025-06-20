@@ -19,6 +19,7 @@ import {
 } from '@mui/icons-material';
 import movieData from '../../utils/movieData'
 import ButtonGroupTrailerBooking from '../../components/ButtonGroupTrailerBooking';
+import ShowTime from '../ShowTime'
 
 const MovieDetail = () => {
   const { id } = useParams();
@@ -67,17 +68,36 @@ const MovieDetail = () => {
   }
 
   return (
+    <>
     <Box sx={{ bgcolor: {backgroundColor}, color: 'white', py: 6, minHeight: '100vh', margin: '0 auto' , padding: 0,width: '95%'}}>
       <Container maxWidth="lg">
         <Grid container spacing={4} direction={{ xs: 'column', sm: 'row' }} alignItems="flex-start">
           {/* Poster */}
           <Grid item xs={12} md={4}>
+            <Box
+              sx={{
+                position: 'relative',
+                width: { xs: 200, md: 300 },
+                aspectRatio: '2 / 3', // đảm bảo khung cố định theo tỷ lệ 2:3
+                borderRadius: 2,
+                overflow: 'hidden',
+                margin: '0 auto',
+              }}
+            >
             <CardMedia
               component="img"
               image={movie.image}
               alt={movie.ten_phim}
-              sx={{ borderRadius: 2, height: { xs: 300, md: 500 }, objectFit: 'cover' }}
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover', // hoặc 'contain' nếu muốn thấy toàn ảnh
+              }}
             />
+            </Box>
           </Grid>
 
           {/* Nội dung */}
@@ -107,8 +127,8 @@ const MovieDetail = () => {
 
             <Chip
               label={`T${movie.nhan_phim.replace(/\D/g, '')}: Phim từ ${movie.nhan_phim.replace(/\D/g, '')}+`}
-              color="warning"
-              sx={{ mb: 3 }}
+              
+              sx={{ mb: 3, background:"linear-gradient(135deg, #FFB800 0%, #FF8C00 100%)" }}
             />
 
             <Typography variant="h6" gutterBottom>
@@ -121,8 +141,9 @@ const MovieDetail = () => {
             {/* Component ButtonGroup */}
             <ButtonGroupTrailerBooking
               onWatchTrailer ={() => setOpenTrailer(movie.trailer)}
-              hideBookButton
+              hideBookButton={() => true}
             />
+            <ShowTime movieId={movie.phim_id} />
             <Modal open={Boolean(openTrailer)} onClose={() => setOpenTrailer(null)}>
         <Box
           sx={{
@@ -161,6 +182,7 @@ const MovieDetail = () => {
         </Grid>
       </Container>
     </Box>
+    </>
   );
 };
 

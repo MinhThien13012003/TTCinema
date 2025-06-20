@@ -12,6 +12,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Container from '@mui/material/Container';
 import AccountProfile from './components/AppBar/Menu/AccountProfile';
+import ShowTime from './pages/ShowTime';
+import Movie from './pages/Movie'
 
 // Pages admin
 import AdminDashboard from './pages/Admin/Dashboard';
@@ -28,7 +30,8 @@ function App() {
             <Route path={PATH.LOGIN} element={<Login />} />
             <Route path={PATH.REGISTER} element={<Register />} />
             <Route path={PATH.ACCOUNTPROFILE} element={<AccountProfile />} />
-            <Route path={PATH.BOOKING} element={<Booking />} />
+            <Route path={PATH.MOVIE} element={<Movie />} />
+            <Route path={PATH.BOOKING_ROUTE} element={<Booking />} />
           </Route>
 
 

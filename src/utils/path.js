@@ -7,7 +7,10 @@ const PATH = {
   ACCOUNTPROFILE: '/account/profile',
   MainContent: '/home',
   MOVIE_DETAIL: (id = ':id') => `/movie/${id}`,
-  BOOKING: '/booking',
+  MOVIE: '/movie',
+  BOOKING_ROUTE: '/booking/:id',
+  BOOKING: (id) => `/booking/${id}`,
+  
 
   ADMIN: {
     ROOT: '/admin',

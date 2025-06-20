@@ -141,8 +141,9 @@ const SliderSection = ({ title, icon, subtitle, items, type }) => {
     m: 1
   }}
 >
-  <MovieCard movie={item} isUpcoming={title.includes('Sắp Chiếu')} />
+  <MovieCard movie={item} isUpcoming />
   <ButtonGroupTrailerBooking
+        isUpcoming={title.includes('Sắp Chiếu')}
         onWatchTrailer={() => setOpenTrailer(item.trailer)}
         onBookTicket={() => {navigate(`/movie/${item.phim_id}`);}}
       />

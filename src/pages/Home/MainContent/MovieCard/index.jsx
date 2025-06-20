@@ -100,20 +100,6 @@ const MovieCard = ({ movie, isUpcoming = false }) => {
             />
           )}
 
-          {/* Trạng thái chiếu */}
-          <Chip
-            label={isUpcoming ? 'Sắp chiếu' : 'Đang chiếu'}
-            size="small"
-            sx={{
-              position: 'absolute',
-              top: 12,
-              right: 12,
-              fontWeight: 600,
-              borderRadius: 2,
-              backgroundColor: isUpcoming ? '#F59E0B' : '#10B981',
-              color: '#FFFFFF'
-            }}
-          />
         </Box>
       )}
 
