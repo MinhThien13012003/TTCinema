@@ -11,23 +11,23 @@ import MenuItem from '@mui/material/MenuItem'
 import Tooltip from '@mui/material/Tooltip'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
+import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined'
 
 // 🧩 Giả sử bạn có các form này
 import LoginForm from '../../../pages/Login'
 import RegisterForm from '../../../pages/Register'
 
 const UserMenu = ({ setAnchorEl, setIsLoggedIn }) => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   const handleGoToProfile = () => {
-    setAnchorEl(null);
-    navigate("/account/profile");
+    setAnchorEl(null)
+    navigate("/account/profile")
   }
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
-    setAnchorEl(null);
+    setIsLoggedIn(false)
+    setAnchorEl(null)
   }
 
   return (
@@ -42,21 +42,29 @@ const UserMenu = ({ setAnchorEl, setIsLoggedIn }) => {
         <Logout sx={{ height: 28, width: 28, mr: 2 }} /> Đăng xuất
       </MenuItem>
     </>
-  );
-};
+  )
+}
 
 function Profile() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userInfo, setUserInfo] = useState(null)
+  const [userRole, setUserRole] = useState(null) // 'user' hoặc 'admin'
   const [showLogin, setShowLogin] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
   const [anchorEl, setAnchorEl] = useState(null)
   const openMenu = Boolean(anchorEl)
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = ({ role, user }) => {
+    setUserInfo(user)
+    setUserRole(role)
     setIsLoggedIn(true)
     setShowLogin(false)
     setShowRegister(false)
   }
+
+  const avatarSrc = userRole === 'user'
+    ? userInfo?.avartar
+    : "https://static.vecteezy.com/system/resources/thumbnails/027/951/137/small_2x/stylish-spectacles-guy-3d-avatar-character-illustrations-png.png"
 
   return (
     <Box>
@@ -101,7 +109,7 @@ function Profile() {
               <Avatar
                 sx={{ width: 32, height: 32 }}
                 alt="Avatar"
-                src="https://static.vecteezy.com/system/resources/thumbnails/027/951/137/small_2x/stylish-spectacles-guy-3d-avatar-character-illustrations-png.png"
+                src={avatarSrc}
               />
             </IconButton>
           </Tooltip>
@@ -119,27 +127,27 @@ function Profile() {
         </>
       )}
 
-     <Dialog open={showLogin} onClose={() => setShowLogin(false)}>
-  <LoginForm
-    onSuccess={handleLoginSuccess}
-    onSwitchToRegister={() => {
-      setShowLogin(false);
-      setShowRegister(true);
-    }}
-  />
-</Dialog>
+      <Dialog open={showLogin} onClose={() => setShowLogin(false)}>
+        <LoginForm
+          onSuccess={handleLoginSuccess}
+          onSwitchToRegister={() => {
+            setShowLogin(false)
+            setShowRegister(true)
+          }}
+        />
+      </Dialog>
 
-<Dialog open={showRegister} onClose={() => setShowRegister(false)}>
-  <RegisterForm
-    onSuccess={handleLoginSuccess}
-    onSwitchToLogin={() => {
-      setShowRegister(false);
-      setShowLogin(true);
-    }}
-  />
-</Dialog>
+      <Dialog open={showRegister} onClose={() => setShowRegister(false)}>
+        <RegisterForm
+          onSuccess={handleLoginSuccess}
+          onSwitchToLogin={() => {
+            setShowRegister(false)
+            setShowLogin(true)
+          }}
+        />
+      </Dialog>
     </Box>
-  );
+  )
 }
 
-export default Profile;
+export default Profile

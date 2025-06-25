@@ -8,22 +8,19 @@ import {
   IconButton,
   Avatar,
   CircularProgress,
-  Divider,
   Link,
-  Container,
-  Dialog
+  Container
 } from '@mui/material'
 import {
   Visibility,
   VisibilityOff,
   Email,
   LockOutlined,
-  Login,
-  Google,
-  Facebook,
-  GitHub
+  Login
 } from '@mui/icons-material'
-import RegisterForm from '../Register'
+import { adminData } from '../../utils/adminData'
+import { userData } from '../../utils/userData'
+import { useNavigate } from 'react-router-dom'
 
 
 function LoginForm({ onSuccess, onSwitchToRegister }) {
@@ -31,7 +28,7 @@ function LoginForm({ onSuccess, onSwitchToRegister }) {
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showRegister, setShowRegister] = useState(false)
+  const navigate=useNavigate()
 
   const validateForm = () => {
     const newErrors = {}
@@ -50,16 +47,32 @@ function LoginForm({ onSuccess, onSwitchToRegister }) {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (!validateForm()) return
+ const handleSubmit = async (e) => {
+  e.preventDefault()
+  if (!validateForm()) return
 
-    setIsSubmitting(true)
-    setTimeout(() => {
-      setIsSubmitting(false)
-      if (onSuccess) onSuccess()
-    }, 1500)
+  setIsSubmitting(true)
+  try {
+    // Thử đăng nhập admin
+    const admin = await adminData.loginAdmin(formData.email, formData.password)
+    console.log("Admin đăng nhập:", admin)
+    if (onSuccess) onSuccess({ role: 'admin', user: admin })
+    navigate('/admin') // ⬅️ Điều hướng vào đây
+    return
+  } catch {
+    // Nếu không phải admin thì thử đăng nhập user
+    try {
+      const user = await userData.loginUser(formData.email, formData.password)
+      console.log("User đăng nhập:", user)
+      if (onSuccess) onSuccess({ role: 'user', user })
+      return
+    } catch (err) {
+      setErrors({ email: "Email hoặc mật khẩu không đúng" })
+    }
+  } finally {
+    setIsSubmitting(false)
   }
+}
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -80,27 +93,14 @@ function LoginForm({ onSuccess, onSwitchToRegister }) {
   return (
     <Container maxWidth="sm" sx={{ py: 6 }}>
       <Box>
-        {/* Header */}
         <Box sx={{ textAlign: 'center', mb: 4 }}>
-          <Avatar
-            sx={{
-              width: 64,
-              height: 64,
-              mx: 'auto',
-              mb: 2
-            }}
-          >
+          <Avatar sx={{ width: 64, height: 64, mx: 'auto', mb: 2 }}>
             <Login fontSize="large" />
           </Avatar>
-          <Typography variant="h4" gutterBottom>
-            Đăng nhập
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Chào mừng bạn quay lại!
-          </Typography>
+          <Typography variant="h4" gutterBottom>Đăng nhập</Typography>
+          <Typography variant="body1" color="text.secondary">Chào mừng bạn quay lại!</Typography>
         </Box>
 
-        {/* Form */}
         <Box component="form" onSubmit={handleSubmit} autoComplete="off">
           <TextField
             fullWidth
@@ -119,7 +119,6 @@ function LoginForm({ onSuccess, onSwitchToRegister }) {
               )
             }}
           />
-
           <TextField
             fullWidth
             label="Mật khẩu"
@@ -144,7 +143,6 @@ function LoginForm({ onSuccess, onSwitchToRegister }) {
               )
             }}
           />
-
           <Button
             type="submit"
             fullWidth
@@ -164,57 +162,16 @@ function LoginForm({ onSuccess, onSwitchToRegister }) {
           </Button>
         </Box>
 
-        {/* <Divider sx={{ my: 3 }}>
-          <Typography variant="body2" color="text.secondary">
-            Hoặc đăng nhập với
-          </Typography>
-        </Divider>
-
-        <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
-          <Button
-            variant="outlined"
-            fullWidth
-            startIcon={<Google />}
-            sx={{ borderColor: '#db4437', color: '#db4437' }}
-          >
-            Google
-          </Button>
-          <Button
-            variant="outlined"
-            fullWidth
-            startIcon={<Facebook />}
-            sx={{ borderColor: '#4267B2', color: '#4267B2' }}
-          >
-            Facebook
-          </Button>
-          <Button
-            variant="outlined"
-            fullWidth
-            startIcon={<GitHub />}
-            sx={{ borderColor: '#333', color: '#333' }}
-          >
-            GitHub
-          </Button>
-        </Box> */}
-
-        {/* Footer */}
         <Box sx={{ textAlign: 'center' }}>
           <Typography variant="body2" color="text.secondary">
             Chưa có tài khoản?{' '}
-            <Link
-              onClick={onSwitchToRegister}
-              href="#"
-              underline="hover"
-              sx={{ fontWeight: 600, color: 'primary.main' }}
-            >
+            <Link onClick={onSwitchToRegister} href="#" underline="hover" sx={{ fontWeight: 600, color: 'primary.main' }}>
               Đăng ký ngay
             </Link>
           </Typography>
         </Box>
       </Box>
     </Container>
-
-    
   )
 }
 

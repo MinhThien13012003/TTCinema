@@ -16,8 +16,11 @@ import ShowTime from './pages/ShowTime';
 import Movie from './pages/Movie'
 
 // Pages admin
-import AdminDashboard from './pages/Admin/Dashboard';
-import AdminMovies from './pages/Admin/Movies';
+import AdminDashboard from './components/Admin/DashBoard';
+ import MovieManagement from './pages/Admin/MovieManagement';
+import MovieCard from './pages/Home/MainContent/MovieCard';
+import OrdersManagement from './pages/Admin/OrdersManagement';
+import ShowTimesManagement from './pages/Admin/ShowTimesManagament';
 
 function App() {
   return (
@@ -38,7 +41,9 @@ function App() {
           {/* Layout admin */}
           <Route path={PATH.ADMIN.ROOT} element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
-            <Route path="movies" element={<AdminMovies />} />
+             <Route path={PATH.ADMIN.MOVIES} element={<MovieManagement />} /> 
+             <Route path={PATH.ADMIN.ORDERS} element={<OrdersManagement />} /> 
+             <Route path={PATH.ADMIN.SHOWTIMES} element={<ShowTimesManagement />} /> 
           </Route>
         </Routes>
       </BrowserRouter>
