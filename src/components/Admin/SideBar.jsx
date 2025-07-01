@@ -12,7 +12,7 @@ import MovieIcon from '@mui/icons-material/Movie';
 import PeopleIcon from '@mui/icons-material/People';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { useLocation, useNavigate } from 'react-router-dom';
-
+import TheatersIcon from '@mui/icons-material/Theaters';
 const drawerWidth = 240;
 
 const Sidebar = () => {
@@ -22,8 +22,8 @@ const Sidebar = () => {
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin' },
     { text: 'Quản lý phim', icon: <MovieIcon />, path: '/admin/movies' },
-    { text: 'Quản lý suất chiếu', icon: <PeopleIcon />, path: '/admin/showtimes' },
-    { text: 'Đơn hàng', icon: <ShoppingCartIcon />, path: '/admin/orders' },
+    { text: 'Quản lý suất chiếu', icon: <TheatersIcon />, path: '/admin/showtimes' },
+    { text: 'Đơn hàng', icon: <ShoppingCartIcon />, path: '/admin/seatprice' },
     { text: 'Người dùng', icon: <PeopleIcon />, path: '/admin/users' },
   ];
 

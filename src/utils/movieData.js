@@ -50,7 +50,7 @@ const movieData = [
     image: "https://upload.wikimedia.org/wikipedia/en/b/bc/Interstellar_film_poster.jpg",
     trailer: "https://www.youtube.com/watch?v=zSWdZVtXT7E",
     nhan_phim: "PG-13",
-    ngay_cong_chieu: "2025-07-10",
+    ngay_cong_chieu: "2025-06-10",
     ngay_ket_thuc: "2025-08-10",
     trang_thai: "sap_chieu",
     lphim_id: 3,

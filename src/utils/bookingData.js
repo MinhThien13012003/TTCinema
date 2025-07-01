@@ -27,7 +27,7 @@ const bookingData = [
     khach_hang_id: 2002,
     ngay_dat: "2025-06-18",
     gio_dat: "10:15:00",
-    trang_thai: "confirmed",
+    trang_thai: "chua thanh toan",
     gia_ve: 210000 // 90000 + 120000
   }
 ];

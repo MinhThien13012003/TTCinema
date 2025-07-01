@@ -101,7 +101,7 @@ const MovieManagement = () => {
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
             <TextField fullWidth placeholder="Tìm kiếm..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-              InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon /></InputAdornment>) }} />
+              InputProps={{ startAdornment: (<InputAdornment nment position="start"><SearchIcon /></InputAdornment>) }} />
           </Grid>
           <Grid >
             <FormControl sx={{ minWidth: 200, width: '100%', maxWidth: 300 }}>

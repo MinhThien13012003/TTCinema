@@ -16,7 +16,7 @@ const PATH = {
     ROOT: '/admin',
     DASHBOARD: '/admin',
     MOVIES: '/admin/movies',
-    ORDERS: '/admin/orders',
+    SEATPRICE: '/admin/seatprice',
     SHOWTIMES: '/admin/showtimes',
   }
 };

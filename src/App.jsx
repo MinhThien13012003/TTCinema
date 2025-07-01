@@ -19,7 +19,7 @@ import Movie from './pages/Movie'
 import AdminDashboard from './components/Admin/DashBoard';
  import MovieManagement from './pages/Admin/MovieManagement';
 import MovieCard from './pages/Home/MainContent/MovieCard';
-import OrdersManagement from './pages/Admin/OrdersManagement';
+import SeatPriceManagement from './pages/Admin/SeatPriceManagement';
 import ShowTimesManagement from './pages/Admin/ShowTimesManagament';
 
 function App() {
@@ -42,7 +42,7 @@ function App() {
           <Route path={PATH.ADMIN.ROOT} element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
              <Route path={PATH.ADMIN.MOVIES} element={<MovieManagement />} /> 
-             <Route path={PATH.ADMIN.ORDERS} element={<OrdersManagement />} /> 
+             <Route path={PATH.ADMIN.SEATPRICE} element={<SeatPriceManagement />} /> 
              <Route path={PATH.ADMIN.SHOWTIMES} element={<ShowTimesManagement />} /> 
           </Route>
         </Routes>
