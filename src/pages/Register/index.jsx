@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState } from "react";
 import {
   Box,
   TextField,
@@ -11,8 +11,10 @@ import {
   Divider,
   Link,
   Container,
-  Dialog
-} from '@mui/material'
+  Dialog,
+  Snackbar,
+  Alert,
+} from "@mui/material";
 import {
   Visibility,
   VisibilityOff,
@@ -23,89 +25,134 @@ import {
   PersonAdd,
   Google,
   Facebook,
-  GitHub
-} from '@mui/icons-material'
-import LoginForm from '../Login'
+  GitHub,
+} from "@mui/icons-material";
+import { useAuthStore } from "../../store/authStore";
+import { useNavigate } from "react-router-dom";
 
 function RegisterForm({ onSuccess, onSwitchToLogin }) {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [errors, setErrors] = useState({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showLogin, setShowLogin] = useState(false)
-  const [showRegister, setShowRegister] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const handleLoginSuccess = () => {
-    setIsLoggedIn(true)
-    setShowLogin(false)
-    setShowRegister(false)
-  }
+    //kh_id: "",
+    name: "",
+    email: "",
+    password: "",
+    //confirmPassword: "",
+    phone: "",
+    dob: "",
+    role: "user",
+    isStudent: true,
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "error",
+  });
+  // const [isSubmitting, setIsSubmitting] = useState(false)
+  // const [showLogin, setShowLogin] = useState(false)
+  // const [showRegister, setShowRegister] = useState(false)
+  // const [isLoggedIn, setIsLoggedIn] = useState(false)
+  // const handleLoginSuccess = () => {
+  //   setIsLoggedIn(true)
+  //   setShowLogin(false)
+  //   setShowRegister(false)
+  // }
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const { register, login, isSubmitting, error } = useAuthStore();
 
   const validateForm = () => {
-    const newErrors = {}
-    if (!formData.name.trim()) newErrors.name = 'Họ tên không được để trống'
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = "Họ tên không được để trống";
     if (!formData.email.trim()) {
-      newErrors.email = 'Email không được để trống'
+      newErrors.email = "Email không được để trống";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email không hợp lệ'
+      newErrors.email = "Email không hợp lệ";
     }
     if (!formData.password) {
-      newErrors.password = 'Mật khẩu không được để trống'
+      newErrors.password = "Mật khẩu không được để trống";
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự'
+      newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
     }
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp'
+    if (formData.password !== confirmPassword) {
+      newErrors.confirmPassword = "Mật khẩu xác nhận không khớp";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (!validateForm()) return
-    setIsSubmitting(true)
-    setTimeout(() => {
-      setIsSubmitting(false)
-      if (onSuccess) onSuccess()
-    }, 2000)
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+    try {
+      await register(formData);
+      // Đăng nhập tự động sau khi đăng ký thành công
+      await login(formData.email, formData.password);
+      if (onSuccess) {
+        onSuccess({ role: "user", user: formData });
+        //console.log("Đăng ký & đăng nhập thành công:", formData);
+      }
+      navigate("/");
+    } catch (error) {
+      let message = error.message || "Đăng ký thất bại";
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        message = error.response.data.message;
+      }
+      setSnackbar({
+        open: true,
+        message,
+        severity: "error",
+      });
+      setErrors((prev) => ({
+        ...prev,
+        form: message,
+      }));
+      //console.error("Đăng ký thất bại:", error);
+      if (error.response) {
+        //console.error("Lỗi chi tiết từ server:", error.response?.data);
+      }
+    }
+  };
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }))
+    if (field === "confirmPassword") {
+      setConfirmPassword(value);
+    } else {
+      setFormData((prev) => ({ ...prev, [field]: value }));
     }
-  }
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+  };
 
   const autofillFix = {
     input: {
-      '&:-webkit-autofill': {
-        boxShadow: '0 0 0 1000px white inset',
-        WebkitTextFillColor: '#000'
-      }
-    }
-  }
+      "&:-webkit-autofill": {
+        boxShadow: "0 0 0 1000px white inset",
+        WebkitTextFillColor: "#000",
+      },
+    },
+  };
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 4  }}>
+    <Container maxWidth="sm" sx={{ mt: 4 }}>
       <Box>
         {/* Header */}
-        <Box sx={{ textAlign: 'center', mb: 4 }}>
+        <Box sx={{ textAlign: "center", mb: 4 }}>
           <Avatar
             sx={{
-              bgcolor: 'primary.main',
+              bgcolor: "primary.main",
               width: 64,
               height: 64,
-              mx: 'auto',
-              mb: 2
+              mx: "auto",
+              mb: 2,
             }}
           >
             <PersonAdd fontSize="large" />
@@ -124,7 +171,7 @@ function RegisterForm({ onSuccess, onSwitchToLogin }) {
             fullWidth
             label="Họ và tên"
             value={formData.name}
-            onChange={(e) => handleInputChange('name', e.target.value)}
+            onChange={(e) => handleInputChange("name", e.target.value)}
             error={!!errors.name}
             helperText={errors.name}
             sx={{ mb: 2, ...autofillFix }}
@@ -133,7 +180,7 @@ function RegisterForm({ onSuccess, onSwitchToLogin }) {
                 <InputAdornment position="start">
                   <Person color="action" />
                 </InputAdornment>
-              )
+              ),
             }}
           />
 
@@ -142,7 +189,7 @@ function RegisterForm({ onSuccess, onSwitchToLogin }) {
             label="Email"
             type="email"
             value={formData.email}
-            onChange={(e) => handleInputChange('email', e.target.value)}
+            onChange={(e) => handleInputChange("email", e.target.value)}
             error={!!errors.email}
             helperText={errors.email}
             sx={{ mb: 2, ...autofillFix }}
@@ -151,16 +198,16 @@ function RegisterForm({ onSuccess, onSwitchToLogin }) {
                 <InputAdornment position="start">
                   <Email color="action" />
                 </InputAdornment>
-              )
+              ),
             }}
           />
 
           <TextField
             fullWidth
             label="Mật khẩu"
-            type={showPassword ? 'text' : 'password'}
+            type={showPassword ? "text" : "password"}
             value={formData.password}
-            onChange={(e) => handleInputChange('password', e.target.value)}
+            onChange={(e) => handleInputChange("password", e.target.value)}
             error={!!errors.password}
             helperText={errors.password}
             sx={{ mb: 2, ...autofillFix }}
@@ -172,20 +219,25 @@ function RegisterForm({ onSuccess, onSwitchToLogin }) {
               ),
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                  <IconButton
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                  >
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
-              )
+              ),
             }}
           />
 
           <TextField
             fullWidth
             label="Xác nhận mật khẩu"
-            type={showConfirmPassword ? 'text' : 'password'}
-            value={formData.confirmPassword}
-            onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+            type={showConfirmPassword ? "text" : "password"}
+            value={confirmPassword} // Sửa lại ở đây
+            onChange={(e) =>
+              handleInputChange("confirmPassword", e.target.value)
+            }
             error={!!errors.confirmPassword}
             helperText={errors.confirmPassword}
             sx={{ mb: 3, ...autofillFix }}
@@ -204,8 +256,24 @@ function RegisterForm({ onSuccess, onSwitchToLogin }) {
                     {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
-              )
+              ),
             }}
+          />
+          <TextField
+            fullWidth
+            label="Số điện thoại"
+            value={formData.phone}
+            onChange={(e) => handleInputChange("phone", e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Ngày sinh"
+            type="date"
+            value={formData.dob}
+            InputLabelProps={{ shrink: true }}
+            onChange={(e) => handleInputChange("dob", e.target.value)}
+            sx={{ mb: 2 }}
           />
 
           <Button
@@ -217,12 +285,13 @@ function RegisterForm({ onSuccess, onSwitchToLogin }) {
             sx={{ mb: 2, py: 1.5 }}
           >
             {isSubmitting ? (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                {/* {console.log("Dữ liệu gửi đi:", formData)} */}
                 <CircularProgress size={20} color="inherit" />
                 Đang tạo tài khoản...
               </Box>
             ) : (
-              'Tạo tài khoản'
+              "Tạo tài khoản"
             )}
           </Button>
         </Box>
@@ -260,22 +329,36 @@ function RegisterForm({ onSuccess, onSwitchToLogin }) {
           </Button>
         </Box> */}
 
-        <Box sx={{ textAlign: 'center' }}>
+        <Box sx={{ textAlign: "center" }}>
           <Typography variant="body2" color="text.secondary">
-            Đã có tài khoản?{' '}
+            Đã có tài khoản?{" "}
             <Link
-            onClick= {onSwitchToLogin}
+              onClick={onSwitchToLogin}
               href="#"
               underline="hover"
-              sx={{ fontWeight: 600, color: 'primary.main' }}
+              sx={{ fontWeight: 600, color: "primary.main" }}
             >
               Đăng nhập ngay
             </Link>
           </Typography>
         </Box>
       </Box>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
-  )
+  );
 }
 
-export default RegisterForm
+export default RegisterForm;

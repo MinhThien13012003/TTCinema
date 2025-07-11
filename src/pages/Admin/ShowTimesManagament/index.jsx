@@ -60,7 +60,6 @@ const ShowTimesManagement = () => {
     () => movieData.filter((p) => today >= p.ngay_cong_chieu),
     [today]
   );
-
   const getMovie = (id) => movieData.find((p) => p.phim_id === id);
   const getMovieName = (id) => getMovie(id)?.ten_phim || `Phim #${id}`;
   const getMovieDuration = (id) => getMovie(id)?.thoi_luong || 0;
@@ -191,6 +190,13 @@ const ShowTimesManagement = () => {
     return room ? room.ten_phong : `Phòng #${phong_id}`;
   };
 
+  const getRoomOptions = () => {
+    return roomData.map((p) => (
+      <MenuItem key={p.phong_id} value={p.phong_id}>
+        {p.ten_phong}
+      </MenuItem>
+    ));
+  };
   return (
     <Box p={4}>
       <Typography variant="h4" gutterBottom>
@@ -342,12 +348,15 @@ const ShowTimesManagement = () => {
             </Grid>
             <Grid item xs={6}>
               <TextField
-                fullWidth
+                select
                 name="phong_id"
                 label="Phòng chiếu"
                 value={form.phong_id}
                 onChange={handleChange}
-              />
+                sx={{ minWidth: 100, width: "100%", maxWidth: 150 }}
+              >
+                {getRoomOptions()}
+              </TextField>
             </Grid>
             <Grid item xs={6}>
               <TextField
