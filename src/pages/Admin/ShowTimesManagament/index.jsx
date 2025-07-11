@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -21,25 +21,19 @@ import {
   Select,
 } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
-import showtimesData from "../../../utils/showtimesData";
-import movieData from "../../../utils/movieData";
-import roomData from "../../../utils/roomData";
+import axios from "../../../service/axios";
 import {
   Dialog as ConfirmDialog,
   DialogTitle as ConfirmTitle,
   DialogContent as ConfirmContent,
   DialogActions as ConfirmActions,
 } from "@mui/material";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const ShowTimesManagement = () => {
-  const [showtimes, setShowtimes] = useState(showtimesData);
-  const [form, setForm] = useState({
-    phim_id: "",
-    phong_id: "",
-    ngay_chieu: "",
-    gio_bat_dau: "",
-    gia_ve: "",
-  });
+  const [showtimes, setShowtimes] = useState([]);
+  const [movie, setMovie] = useState([]);
+  const [roomData, setRoomData] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
   const [alert, setAlert] = useState({
@@ -48,39 +42,174 @@ const ShowTimesManagement = () => {
     message: "",
   });
   const [filters, setFilters] = useState({
-    phim_id: "",
-    phong_id: "",
-    ngay_chieu: "",
+    movieId: "",
+    roomId: "",
+    date: "",
   });
+
+  const [form, setForm] = useState({
+    movieId: "",
+    roomId: "",
+    date: "",
+    startTime: "",
+    price: "",
+  });
+
   const [deleteIndex, setDeleteIndex] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Chỉ hiển thị các phim còn đang chiếu
   const today = new Date().toISOString().split("T")[0];
   const validMovies = useMemo(
-    () => movieData.filter((p) => today >= p.ngay_cong_chieu),
-    [today]
+    () => movie.filter((p) => today >= p.releaseDate),
+    [today, movie]
   );
-  const getMovie = (id) => movieData.find((p) => p.phim_id === id);
-  const getMovieName = (id) => getMovie(id)?.ten_phim || `Phim #${id}`;
-  const getMovieDuration = (id) => getMovie(id)?.thoi_luong || 0;
-  const getMovieStartDate = (id) =>
-    getMovie(id)?.ngay_cong_chieu || "1900-01-01";
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  // Fetch API
+  useEffect(() => {
+    fetchShowtimes();
+    fetchMovies();
+    fetchRoomData();
+  }, []);
+
+  const fetchRoomData = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get("/api/rooms");
+      console.log("Fetched rooms:", res.data);
+      setRoomData(res.data);
+    } catch (err) {
+      console.error("Error fetching rooms:", err);
+    }
+    setLoading(false);
   };
 
+  const fetchMovies = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get("/api/movies");
+      console.log("Fetched movies:", res.data);
+      setMovie(res.data);
+    } catch (err) {
+      console.error("Error fetching movies:", err);
+    }
+    setLoading(false);
+  };
+
+  const fetchShowtimes = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get("/api/showtimes");
+      console.log("Fetched showtimes:", res.data);
+      setShowtimes(res.data);
+    } catch (err) {
+      console.error("Error fetching showtimes:", err);
+    }
+    setLoading(false);
+  };
+
+  // Hàm lấy thông tin phim/phòng
+  const getMovie = (id) =>
+    movie.find((p) => p.phim_id === id || p.movieId === id || p._id === id);
+  const getMovieName = (movieObjOrId) => {
+    if (!movieObjOrId) return "";
+    if (typeof movieObjOrId === "object" && movieObjOrId.title) {
+      return movieObjOrId.title;
+    }
+    const found = movie.find(
+      (p) =>
+        p._id === movieObjOrId ||
+        p.phim_id === movieObjOrId ||
+        p.movieId === movieObjOrId
+    );
+    return found?.title || found?.ten_phim || `Phim #${movieObjOrId}`;
+  };
+  const getMovieDuration = (id) => getMovie(id)?.duration || 0;
+  const getMovieStartDate = (id) => getMovie(id)?.releaseDate || "1900-01-01";
+
+  const getRoomName = (roomObjOrId) => {
+    if (!roomObjOrId) return "";
+    if (typeof roomObjOrId === "object" && roomObjOrId.name) {
+      return roomObjOrId.name;
+    }
+    const found = roomData.find(
+      (r) =>
+        r._id === roomObjOrId ||
+        r.roomId === roomObjOrId ||
+        r.phong_id === roomObjOrId
+    );
+    return found?.name || found?.ten_phong || `Phòng #${roomObjOrId}`;
+  };
+
+  const getRoomOptions = () => {
+    return roomData.map((p) => (
+      <MenuItem
+        key={p.roomId || p.phong_id || p._id}
+        value={p.roomId || p.phong_id || p._id}
+      >
+        {p.name || p.ten_phong}
+      </MenuItem>
+    ));
+  };
+
+  // Tạo ánh xạ từ _id sang phim_id
+  const movieIdMap = useMemo(() => {
+    return Object.fromEntries(
+      movie.map((p) => [p._id, p.phim_id || p.movieId || p._id])
+    );
+  }, [movie]);
+
+  // Tạo ánh xạ từ _id sang roomId (giả định roomData có roomId)
+  const roomIdMap = useMemo(() => {
+    return Object.fromEntries(
+      roomData.map((r) => [r._id, r.roomId || r.phong_id || r._id])
+    );
+  }, [roomData]);
+
+  // Khi setForm hoặc setFilters, luôn truyền giá trị mặc định là "" nếu không có
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value ?? "" });
+  };
+
+  // Khi mở dialog sửa, đảm bảo giá trị không undefined
   const handleOpenDialog = (index = null) => {
     if (index !== null) {
-      setForm(showtimes[index]);
+      const suat = showtimes[index];
+      // Xử lý movieId: ánh xạ từ _id sang phim_id
+      const movieIdRaw =
+        typeof suat.movieId === "object"
+          ? suat.movieId._id ||
+            suat.movieId.phim_id ||
+            suat.movieId.movieId ||
+            ""
+          : suat.movieId || "";
+      const validMovieId = movieIdMap[movieIdRaw] || "";
+      // Xử lý roomId
+      const roomIdRaw =
+        typeof suat.roomId === "object"
+          ? suat.roomId._id || suat.roomId.roomId || suat.roomId.phong_id || ""
+          : suat.roomId || "";
+      const validRoomId = roomIdMap[roomIdRaw] || "";
+      // Chuyển đổi định dạng date
+      const date = suat.date
+        ? new Date(suat.date).toISOString().split("T")[0]
+        : "";
+
+      setForm({
+        movieId: validMovieId,
+        roomId: validRoomId,
+        date,
+        startTime: suat.startTime || "",
+        price: suat.price || "",
+      });
       setEditIndex(index);
     } else {
       setForm({
-        phim_id: "",
-        phong_id: "",
-        ngay_chieu: "",
-        gio_bat_dau: "",
-        gia_ve: "",
+        movieId: "",
+        roomId: "",
+        date: "",
+        startTime: "",
+        price: "",
       });
       setEditIndex(null);
     }
@@ -89,73 +218,7 @@ const ShowTimesManagement = () => {
 
   const handleCloseDialog = () => setOpenDialog(false);
 
-  const isConflict = (newSuat, index = null) => {
-    return showtimes.some((s, i) => {
-      if (i === index) return false;
-      return (
-        s.phong_id === parseInt(newSuat.phong_id) &&
-        s.ngay_chieu === newSuat.ngay_chieu &&
-        s.gio_ket_thuc > newSuat.gio_bat_dau &&
-        s.gio_bat_dau < newSuat.gio_ket_thuc
-      );
-    });
-  };
-
-  const handleSubmit = () => {
-    const duration = getMovieDuration(parseInt(form.phim_id));
-    const gio_ket_thuc = calculateEndTime(form.gio_bat_dau, duration);
-
-    const ngay_chieu = form.ngay_chieu;
-    const now = new Date().toISOString().split("T")[0];
-    if (ngay_chieu < getMovieStartDate(parseInt(form.phim_id))) {
-      return setAlert({
-        open: true,
-        type: "error",
-        message: "Ngày chiếu phải sau ngày công chiếu phim.",
-      });
-    }
-    // if (ngay_chieu < now) {
-    //   return setAlert({ open: true, type: 'error', message: 'Không được tạo suất chiếu trong quá khứ.' });
-    // }
-
-    const newSuat = {
-      ...form,
-      phim_id: parseInt(form.phim_id),
-      phong_id: parseInt(form.phong_id),
-      gio_ket_thuc,
-    };
-
-    if (isConflict(newSuat, editIndex)) {
-      return setAlert({
-        open: true,
-        type: "error",
-        message: "Trùng suất chiếu trong cùng phòng và thời gian.",
-      });
-    }
-
-    if (editIndex !== null) {
-      const updated = [...showtimes];
-      updated[editIndex] = { ...updated[editIndex], ...newSuat };
-      setShowtimes(updated);
-      setAlert({
-        open: true,
-        type: "success",
-        message: "Cập nhật thành công.",
-      });
-    } else {
-      const suat_id = showtimes.length
-        ? Math.max(...showtimes.map((s) => s.suat_id)) + 1
-        : 1;
-      setShowtimes([...showtimes, { ...newSuat, suat_id }]);
-      setAlert({
-        open: true,
-        type: "success",
-        message: "Thêm mới thành công.",
-      });
-    }
-    setOpenDialog(false);
-  };
-
+  // Tính giờ kết thúc
   const calculateEndTime = (start, durationMinutes) => {
     const [h, m] = start.split(":").map(Number);
     const startDate = new Date(0, 0, 0, h, m);
@@ -163,42 +226,175 @@ const ShowTimesManagement = () => {
     return startDate.toTimeString().split(" ")[0].substring(0, 5);
   };
 
-  const handleDelete = (index) => {
-    const confirm = window.confirm(
-      "Xác nhận xóa suất chiếu? Chỉ xóa nếu chưa bán vé."
-    );
-    if (confirm) {
-      const updated = [...showtimes];
-      updated.splice(index, 1);
-      setShowtimes(updated);
-      setAlert({ open: true, type: "info", message: "Đã xóa suất chiếu." });
-    }
-  };
-
-  const filteredShowtimes = useMemo(() => {
-    return showtimes.filter((s) => {
+  // Kiểm tra trùng suất chiếu
+  const isConflict = (newSuat, index = null) => {
+    return showtimes.some((s, i) => {
+      if (i === index) return false;
+      const sRoomId =
+        typeof s.roomId === "object"
+          ? s.roomId._id || s.roomId.roomId || s.roomId.phong_id
+          : s.roomId;
       return (
-        (!filters.phim_id || s.phim_id == filters.phim_id) &&
-        (!filters.phong_id || s.phong_id == filters.phong_id) &&
-        (!filters.ngay_chieu || s.ngay_chieu === filters.ngay_chieu)
+        sRoomId === newSuat.roomId &&
+        (s.date || s.ngay_chieu) === newSuat.date &&
+        (s.endTime || s.gio_ket_thuc) > newSuat.startTime &&
+        (s.startTime || s.gio_bat_dau) < newSuat.endTime
       );
     });
-  }, [showtimes, filters]);
-
-  const getRoomName = (phong_id) => {
-    const room = roomData.find((r) => r.phong_id === phong_id);
-    return room ? room.ten_phong : `Phòng #${phong_id}`;
   };
 
-  const getRoomOptions = () => {
-    return roomData.map((p) => (
-      <MenuItem key={p.phong_id} value={p.phong_id}>
-        {p.ten_phong}
-      </MenuItem>
-    ));
+  // Thêm/sửa suất chiếu
+  const handleSubmit = async () => {
+    setLoading(true);
+    const duration = getMovieDuration(form.movieId);
+    const endTime = calculateEndTime(form.startTime, duration);
+
+    if (form.date < getMovieStartDate(form.movieId)) {
+      return setAlert({
+        open: true,
+        type: "error",
+        message: "Ngày chiếu phải sau ngày công chiếu phim.",
+      });
+    }
+
+    const movieObj =
+      movie.find(
+        (p) =>
+          p.phim_id === form.movieId ||
+          p.movieId === form.movieId ||
+          p._id === form.movieId
+      ) || {};
+
+    const roomObj =
+      roomData.find(
+        (r) =>
+          r._id === form.roomId ||
+          r.roomId === form.roomId ||
+          r.phong_id === form.roomId
+      ) || {};
+
+    const newSuat = {
+      suat_chieu_id: Math.floor(Math.random() * 1000000),
+      movieId: movieObj._id || movieObj.phim_id || movieObj.movieId,
+      roomId: roomObj._id || roomObj.roomId || roomObj.phong_id,
+      date: form.date,
+      startTime: form.startTime,
+      endTime,
+    };
+
+    try {
+      if (editIndex !== null) {
+        const suatId = showtimes[editIndex].suat_chieu_id;
+        await axios.put(`/api/showtimes/${suatId}`, newSuat);
+        setAlert({
+          open: true,
+          type: "success",
+          message: "Cập nhật thành công.",
+        });
+        fetchShowtimes();
+      } else {
+        console.log("Adding new showtime:", newSuat);
+        await axios.post("/api/showtimes", newSuat);
+        setAlert({
+          open: true,
+          type: "success",
+          message: "Thêm mới thành công.",
+        });
+        fetchShowtimes();
+      }
+    } catch (err) {
+      console.error("Error saving showtime:", err?.response?.data || err);
+      setAlert({
+        open: true,
+        type: "error",
+        message: "Lỗi khi lưu suất chiếu!",
+      });
+    }
+
+    setLoading(false);
+    setOpenDialog(false);
   };
+
+  // Xóa suất chiếu
+  const handleDelete = async (index) => {
+    setLoading(true);
+    const suatId = showtimes[index].suat_chieu_id;
+    try {
+      await axios.delete(`/api/showtimes/${suatId}`);
+      setAlert({
+        open: true,
+        type: "success",
+        message: "Xóa suất chiếu thành công.",
+      });
+      fetchShowtimes();
+    } catch (err) {
+      setAlert({
+        open: true,
+        type: "error",
+        message: "Lỗi khi xóa suất chiếu.",
+      });
+    }
+    setLoading(false);
+    setDeleteIndex(null);
+  };
+
+  // Lọc bảng
+  const filteredShowtimes = useMemo(() => {
+    return showtimes.filter((s) => {
+      const movieIdRaw =
+        s.movieId && typeof s.movieId === "object"
+          ? s.movieId._id || s.movieId.phim_id || s.movieId.movieId
+          : s.movieId;
+      const movieId = movieIdMap[movieIdRaw] || movieIdRaw;
+      const roomIdRaw =
+        s.roomId && typeof s.roomId === "object"
+          ? s.roomId._id || s.roomId.roomId || s.roomId.phong_id
+          : s.roomId;
+      const roomId = roomIdMap[roomIdRaw] || roomIdRaw;
+      return (
+        (!filters.movieId || movieId == filters.movieId) &&
+        (!filters.roomId || roomId == filters.roomId) &&
+        (!filters.date ||
+          (s.date &&
+            new Date(s.date).toISOString().split("T")[0] === filters.date))
+      );
+    });
+  }, [showtimes, filters, movieIdMap, roomIdMap]);
+
+  const formatDateVN = (isoString, showTime = false) => {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    const dd = String(date.getDate()).padStart(2, "0");
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const yyyy = date.getFullYear();
+    if (showTime) {
+      const hh = String(date.getHours()).padStart(2, "0");
+      const min = String(date.getMinutes()).padStart(2, "0");
+      return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+    }
+    return `${dd}/${mm}/${yyyy}`;
+  };
+
   return (
-    <Box p={4}>
+    <Box p={4} sx={{ position: "relative" }}>
+      {loading && (
+        <Box
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            bgcolor: "rgba(255,255,255,0.5)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <CircularProgress color="primary" />
+        </Box>
+      )}
       <Typography variant="h4" gutterBottom>
         Quản lý lịch chiếu
       </Typography>
@@ -210,28 +406,33 @@ const ShowTimesManagement = () => {
             select
             sx={{ minWidth: 100, width: "100%", maxWidth: 150 }}
             label="Lọc theo phim"
-            value={filters.phim_id}
+            value={filters.movieId}
             onChange={(e) =>
-              setFilters({ ...filters, phim_id: e.target.value })
+              setFilters({ ...filters, movieId: e.target.value })
             }
           >
             <MenuItem value="">Tất cả</MenuItem>
-            {movieData.map((p) => (
-              <MenuItem key={p.phim_id} value={p.phim_id}>
-                {p.ten_phim}
+            {movie.map((p) => (
+              <MenuItem
+                key={p.phim_id || p.movieId || p._id}
+                value={p.phim_id || p.movieId || p._id}
+              >
+                {p.title || p.ten_phim}
               </MenuItem>
             ))}
           </TextField>
         </Grid>
         <Grid item xs={4}>
           <TextField
+            select
             label="Lọc theo phòng"
-            fullWidth
-            value={filters.phong_id}
-            onChange={(e) =>
-              setFilters({ ...filters, phong_id: e.target.value })
-            }
-          />
+            value={filters.roomId}
+            onChange={(e) => setFilters({ ...filters, roomId: e.target.value })}
+            sx={{ minWidth: 100, width: "100%", maxWidth: 150 }}
+          >
+            <MenuItem value="">Tất cả</MenuItem>
+            {getRoomOptions()}
+          </TextField>
         </Grid>
         <Grid item xs={4}>
           <TextField
@@ -239,10 +440,8 @@ const ShowTimesManagement = () => {
             fullWidth
             type="date"
             InputLabelProps={{ shrink: true }}
-            value={filters.ngay_chieu}
-            onChange={(e) =>
-              setFilters({ ...filters, ngay_chieu: e.target.value })
-            }
+            value={filters.date}
+            onChange={(e) => setFilters({ ...filters, date: e.target.value })}
           />
         </Grid>
       </Grid>
@@ -269,12 +468,12 @@ const ShowTimesManagement = () => {
         </TableHead>
         <TableBody>
           {filteredShowtimes.map((row, index) => (
-            <TableRow key={row.suat_id}>
-              <TableCell>{getMovieName(row.phim_id)}</TableCell>
-              <TableCell>{getRoomName(row.phong_id)}</TableCell>
-              <TableCell>{row.ngay_chieu}</TableCell>
-              <TableCell>{row.gio_bat_dau}</TableCell>
-              <TableCell>{row.gio_ket_thuc}</TableCell>
+            <TableRow key={row.suat_chieu_id || index}>
+              <TableCell>{getMovieName(row.movieId)}</TableCell>
+              <TableCell>{getRoomName(row.roomId)}</TableCell>
+              <TableCell>{formatDateVN(row.date)}</TableCell>
+              <TableCell>{row.startTime}</TableCell>
+              <TableCell>{row.endTime}</TableCell>
               <TableCell>
                 <IconButton
                   color="primary"
@@ -286,7 +485,7 @@ const ShowTimesManagement = () => {
                   <Delete />
                 </IconButton>
                 <ConfirmDialog
-                  open={deleteIndex !== null}
+                  open={deleteIndex === index}
                   onClose={() => setDeleteIndex(null)}
                 >
                   <ConfirmTitle>Xác nhận xoá suất chiếu</ConfirmTitle>
@@ -301,17 +500,7 @@ const ShowTimesManagement = () => {
                     <Button
                       variant="contained"
                       color="error"
-                      onClick={() => {
-                        const updated = [...showtimes];
-                        updated.splice(deleteIndex, 1);
-                        setShowtimes(updated);
-                        setAlert({
-                          open: true,
-                          type: "info",
-                          message: "Đã xoá suất chiếu.",
-                        });
-                        setDeleteIndex(null);
-                      }}
+                      onClick={() => handleDelete(index)}
                     >
                       Xác nhận xoá
                     </Button>
@@ -333,15 +522,18 @@ const ShowTimesManagement = () => {
             <Grid item xs={6}>
               <TextField
                 select
-                sx={{ minWidth: 100, width: "100%", maxWidth: 150 }}
-                name="phim_id"
+                name="movieId"
                 label="Phim"
-                value={form.phim_id}
+                value={form.movieId}
                 onChange={handleChange}
+                sx={{ minWidth: 100, width: "100%", maxWidth: 150 }}
               >
-                {validMovies.map((p) => (
-                  <MenuItem key={p.phim_id} value={p.phim_id}>
-                    {p.ten_phim}
+                {movie.map((p) => (
+                  <MenuItem
+                    key={p.phim_id || p.movieId || p._id}
+                    value={p.phim_id || p.movieId || p._id}
+                  >
+                    {p.title || p.ten_phim}
                   </MenuItem>
                 ))}
               </TextField>
@@ -349,9 +541,9 @@ const ShowTimesManagement = () => {
             <Grid item xs={6}>
               <TextField
                 select
-                name="phong_id"
+                name="roomId"
                 label="Phòng chiếu"
-                value={form.phong_id}
+                value={form.roomId}
                 onChange={handleChange}
                 sx={{ minWidth: 100, width: "100%", maxWidth: 150 }}
               >
@@ -361,22 +553,22 @@ const ShowTimesManagement = () => {
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                name="ngay_chieu"
+                name="date"
                 label="Ngày chiếu"
                 type="date"
                 InputLabelProps={{ shrink: true }}
-                value={form.ngay_chieu}
+                value={form.date}
                 onChange={handleChange}
               />
             </Grid>
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                name="gio_bat_dau"
+                name="startTime"
                 label="Giờ bắt đầu"
                 type="time"
                 InputLabelProps={{ shrink: true }}
-                value={form.gio_bat_dau}
+                value={form.startTime}
                 onChange={handleChange}
               />
             </Grid>

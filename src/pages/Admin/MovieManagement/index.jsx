@@ -45,6 +45,11 @@ import {
 import showtimesData from "../../../utils/movieData";
 import AddGenre from "./AddGenres";
 import axios from "../../../service/axios";
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // export const theLoaiOptions = [
 //   "Hành động",
@@ -72,6 +77,17 @@ const MovieManagement = () => {
   });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [movieToDelete, setMovieToDelete] = useState(null);
+  const formatDateForInput = (isoString) => {
+    if (!isoString) return "";
+    try {
+      const date = new Date(isoString);
+      if (isNaN(date.getTime())) return ""; // Xử lý trường hợp date không hợp lệ
+      return date.toISOString().split("T")[0]; // Trả về yyyy-MM-dd
+    } catch (err) {
+      console.error("Error parsing date:", isoString, err);
+      return "";
+    }
+  };
 
   const [movieForm, setMovieForm] = useState({
     ten_phim: "",
@@ -85,8 +101,8 @@ const MovieManagement = () => {
     image: "",
     trailer: "",
     nhan_phim: "P",
-    ngay_cong_chieu: "",
-    ngay_ket_thuc: "",
+    releaseDate: "",
+    endDate: "",
     trang_thai: "sap_chieu",
     language: "",
   });
@@ -117,8 +133,8 @@ const MovieManagement = () => {
           image: movie.poster,
           trailer: movie.trailer,
           nhan_phim: movie.label || "P",
-          ngay_cong_chieu: movie.releaseDate,
-          ngay_ket_thuc: movie.endDate,
+          releaseDate: formatDateForInput(movie.releaseDate),
+          endDate: formatDateForInput(movie.endDate),
           trang_thai,
           language: movie.language || "",
         };
@@ -183,6 +199,8 @@ const MovieManagement = () => {
               ...movie,
               the_loai: movie.the_loai,
               genreId: movie.genreId,
+              releaseDate: formatDateForInput(movie.releaseDate), // Chuyển đổi định dạng
+              endDate: formatDateForInput(movie.endDate),
             }
           : {
               ten_phim: "",
@@ -236,8 +254,12 @@ const MovieManagement = () => {
       actors: movieForm.dien_vien,
       director: movieForm.dao_dien,
       language: movieForm.quoc_gia === "Việt Nam" ? "Vietnamese" : "English",
-      releaseDate: movieForm.ngay_cong_chieu,
-      endDate: movieForm.ngay_ket_thuc,
+      releaseDate: movieForm.releaseDate
+        ? new Date(movieForm.releaseDate).toISOString()
+        : null,
+      endDate: movieForm.endDate
+        ? new Date(movieForm.endDate).toISOString()
+        : null,
       poster: movieForm.image,
       trailer: movieForm.trailer,
       label: movieForm.nhan_phim,
@@ -245,6 +267,7 @@ const MovieManagement = () => {
 
     try {
       if (editingMovie) {
+        console.log("Phim gửi đi:", movieToSend);
         await axios.put(`/api/movies/${editingMovie.phim_id}`, movieToSend);
         setSnackbar({
           open: true,
@@ -283,8 +306,8 @@ const MovieManagement = () => {
           image: movie.poster,
           trailer: movie.trailer,
           nhan_phim: movie.label || "P",
-          ngay_cong_chieu: movie.releaseDate,
-          ngay_ket_thuc: movie.endDate,
+          releaseDate: movie.releaseDate,
+          endDate: movie.endDate,
           trang_thai,
         };
       });
@@ -442,7 +465,13 @@ const MovieManagement = () => {
                 </Typography>
                 <Typography variant="caption">
                   {movie.thoi_luong} phút | {movie.nhan_phim} |{" "}
-                  {movie.nam_phat_hanh}
+                  {dayjs(movie.releaseDate)
+                    .tz("Asia/Ho_Chi_Minh")
+                    .format("DD/MM/YYYY")}{" "}
+                  -{" "}
+                  {dayjs(movie.endDate)
+                    .tz("Asia/Ho_Chi_Minh")
+                    .format("DD/MM/YYYY")}
                 </Typography>
               </CardContent>
               <CardActions>
@@ -590,11 +619,11 @@ const MovieManagement = () => {
                 type="date"
                 fullWidth
                 InputLabelProps={{ shrink: true }}
-                value={movieForm.ngay_cong_chieu}
+                value={movieForm.releaseDate}
                 onChange={(e) =>
                   setMovieForm({
                     ...movieForm,
-                    ngay_cong_chieu: e.target.value,
+                    releaseDate: e.target.value,
                   })
                 }
               />
@@ -605,9 +634,9 @@ const MovieManagement = () => {
                 type="date"
                 fullWidth
                 InputLabelProps={{ shrink: true }}
-                value={movieForm.ngay_ket_thuc}
+                value={movieForm.endDate}
                 onChange={(e) =>
-                  setMovieForm({ ...movieForm, ngay_ket_thuc: e.target.value })
+                  setMovieForm({ ...movieForm, endDate: e.target.value })
                 }
               />
             </Grid>

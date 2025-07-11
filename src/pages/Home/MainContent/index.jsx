@@ -5,12 +5,17 @@ import {
 } from "@mui/icons-material";
 import { Container } from "@mui/material";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import promotionData from "../../../utils/promotionData";
 import SliderSection from "./SliderSection";
 import axios from "../../../service/axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
-const now = dayjs();
+// Cấu hình múi giờ
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.tz.setDefault("Asia/Ho_Chi_Minh");
 
 const MainContent = () => {
   const [movieApi, setMovieApi] = useState([]);
@@ -18,36 +23,56 @@ const MainContent = () => {
   const fetchMovies = async () => {
     try {
       const res = await axios.get("/api/movies");
-      console.log("Movies fetched successfully:", res.data);
+      //console.log("Movies fetched successfully:", res.data);
+      // s
       setMovieApi(res.data);
     } catch (err) {
-      console.error("Error fetching movies:", err);
+      // console.error("Error fetching movies:", err);
+      alert("Không thể tải danh sách phim. Vui lòng thử lại sau.");
     }
   };
+
   useEffect(() => {
     fetchMovies();
   }, []);
-  const currentMovies = movieApi.filter((movie) => {
-    const start = dayjs(movie.ngay_cong_chieu, "YYYY-MM-DD");
-    const end = dayjs(movie.ngay_ket_thuc, "YYYY-MM-DD");
-    return (
-      start.isValid() &&
-      end.isValid() &&
-      start.isBefore(now) &&
-      end.isAfter(now)
+
+  // Lấy thời gian hiện tại động
+  const now = dayjs().tz("Asia/Ho_Chi_Minh");
+
+  // Lọc phim đang chiếu
+  const currentMovies = useMemo(() => {
+    const filtered = movieApi.filter((movie) => {
+      const start = dayjs(movie.releaseDate).tz("Asia/Ho_Chi_Minh");
+      const end = dayjs(movie.endDate).tz("Asia/Ho_Chi_Minh");
+      return (
+        start.isValid() &&
+        end.isValid() &&
+        (start.isBefore(now, "day") || start.isSame(now, "day")) &&
+        (end.isAfter(now, "day") || end.isSame(now, "day"))
+      );
+    });
+    //console.log("Current movies:", filtered);
+    return filtered;
+  }, [movieApi, now]);
+
+  // Lọc phim sắp chiếu
+  const upcomingMovies = useMemo(() => {
+    const filtered = movieApi.filter((movie) => {
+      const start = dayjs(movie.releaseDate).tz("Asia/Ho_Chi_Minh");
+      return start.isValid() && start.isAfter(now, "day");
+    });
+    return filtered;
+  }, [movieApi, now]);
+
+  // Lọc khuyến mãi
+  const activePromotions = useMemo(() => {
+    return promotionData.filter(
+      (promo) =>
+        dayjs(promo.start_date).isBefore(now) &&
+        dayjs(promo.end_date).isAfter(now)
     );
-  });
+  }, []);
 
-  const upcomingMovies = movieApi.filter((movie) => {
-    const start = dayjs(movie.ngay_cong_chieu, "YYYY-MM-DD");
-    return start.isValid() && start.isAfter(now);
-  });
-
-  const activePromotions = promotionData.filter(
-    (promo) =>
-      dayjs(promo.start_date).isBefore(now) &&
-      dayjs(promo.end_date).isAfter(now)
-  );
   return (
     <Container maxWidth="xl" sx={{ py: 4, bgcolor: "#16213e" }}>
       <SliderSection
@@ -67,7 +92,7 @@ const MainContent = () => {
       {/* <SliderSection
         title="Khuyến Mãi Đang Diễn Ra"
         icon={LocalOfferOutlined}
-        subtitle={`${activePromotions.length} ưu đ��i hấp dẫn dành cho bạn`}
+        subtitle={`${activePromotions.length} ưu đãi hấp dẫn dành cho bạn`}
         items={activePromotions}
         type="promotion"
       /> */}
