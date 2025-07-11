@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: "https://contemporary-leia-vominhthien-093a2625.koyeb.app/",
+  baseURL: "/",
   timeout: 20000,
 });
 instance.interceptors.request.use(

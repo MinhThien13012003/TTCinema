@@ -15,8 +15,8 @@ const now = dayjs();
 function Booking() {
   const [movieApi, setMovieApi] = useState([]);
   const currentMovies = movieApi.filter((movie) => {
-    const start = dayjs(movie.ngay_cong_chieu, "YYYY-MM-DD");
-    const end = dayjs(movie.ngay_ket_thuc, "YYYY-MM-DD");
+    const start = dayjs(movie.releaseDate, "YYYY-MM-DD");
+    const end = dayjs(movie.endDate, "YYYY-MM-DD");
     return (
       start.isValid() &&
       end.isValid() &&
@@ -26,16 +26,16 @@ function Booking() {
   });
 
   const upcomingMovies = movieApi.filter((movie) => {
-    const start = dayjs(movie.ngay_cong_chieu, "YYYY-MM-DD");
+    const start = dayjs(movie.releaseDate, "YYYY-MM-DD");
     return start.isValid() && start.isAfter(now);
   });
   const fetchMovies = async () => {
     try {
       const res = await axios.get("/api/movies");
-      console.log("Movies fetched successfully:", res.data);
+      //console.log("Movies fetched successfully:", res.data);
       setMovieApi(res.data);
     } catch (err) {
-      console.error("Error fetching movies:", err);
+      //console.error("Error fetching movies:", err);
     }
   };
   useEffect(() => {

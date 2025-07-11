@@ -42,7 +42,7 @@ const MovieCard = ({ movie, isUpcoming = false }) => {
           <CardMedia
             component="img"
             image={movie.poster}
-            alt={movie.ten_phim}
+            alt={movie.title}
             sx={{
               objectFit: "cover",
               width: "100%",
@@ -162,8 +162,8 @@ const MovieCard = ({ movie, isUpcoming = false }) => {
         >
           <CalendarTodayOutlined sx={{ fontSize: 14 }} />
           {isUpcoming
-            ? dayjs(movie.ngay_cong_chieu).format("DD.MM.YYYY")
-            : `Đến ${dayjs(movie.ngay_ket_thuc).format("DD.MM.YYYY")}`}
+            ? `Khởi chiếu: ${dayjs(movie.releaseDate).format("DD/MM/YYYY")}`
+            : `Đến ${dayjs(movie.endDate).format("DD/MM/YYYY")}`}
         </Typography>
       </CardContent>
     </Card>
