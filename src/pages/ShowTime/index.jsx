@@ -1,24 +1,34 @@
-import React, { useState, useEffect } from "react";
-import { Button, Typography, Box, Container } from "@mui/material";
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  Button,
+  Typography,
+  Box,
+  Container,
+  CircularProgress,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import axios from "../../service/axios"; // Thêm dòng này
-import roomData from "../../utils/roomData";
+import axios from "../../service/axios";
 
 const formatDateDisplay = (dateStr) => {
+  if (!dateStr) return "";
   const date = new Date(dateStr);
   const dd = String(date.getDate()).padStart(2, "0");
   const mm = String(date.getMonth() + 1).padStart(2, "0");
   const yyyy = date.getFullYear();
-
   return `${dd}/${mm}/${yyyy}`;
 };
 
 const ShowTime = ({ movieId }) => {
   const navigate = useNavigate();
   const [showTimesData, setShowTimesData] = useState([]);
+  const [roomsData, setRoomsData] = useState([]);
+  const [moviesData, setMoviesData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
+  // Fetch API
   useEffect(() => {
     const fetchShowTimes = async () => {
+      setLoading(true);
       try {
         const res = await axios.get("/api/showtimes");
         setShowTimesData(res.data);
@@ -27,47 +37,167 @@ const ShowTime = ({ movieId }) => {
         setShowTimesData([]);
         console.error("Lỗi khi lấy suất chiếu:", err);
       }
+      setLoading(false);
+    };
+    const fetchRooms = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get("/api/rooms");
+        setRoomsData(res.data);
+        console.log("Phòng chiếu đã được lấy thành công:", res.data);
+      } catch (err) {
+        setRoomsData([]);
+        console.error("Lỗi khi lấy phòng chiếu:", err);
+      }
+      setLoading(false);
+    };
+    const fetchMovies = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get("/api/movies");
+        setMoviesData(res.data);
+        console.log("Phim đã được lấy thành công:", res.data);
+      } catch (err) {
+        setMoviesData([]);
+        console.error("Lỗi khi lấy phim:", err);
+      }
+      setLoading(false);
     };
     fetchShowTimes();
-  }, []);
+    fetchRooms();
+    fetchMovies();
+  }, []); // Chỉ chạy một lần khi mount
 
-  // Lọc suất chiếu theo movieId
-  const filteredSuatChieu = showTimesData.filter(
-    (suat) => suat.movieId === movieId
-  );
+  // Tạo ánh xạ từ _id sang phim_id
+  const movieIdMap = useMemo(() => {
+    return Object.fromEntries(
+      moviesData.map((p) => [p._id, p.phim_id || p.movieId || p._id])
+    );
+  }, [moviesData]);
 
-  // Hàm lấy tên phòng dựa trên roomId
+  // Tạo ánh xạ từ _id sang roomId
+  const roomIdMap = useMemo(() => {
+    return Object.fromEntries(
+      roomsData.map((r) => [r._id, r.roomId || r.phong_id || r._id])
+    );
+  }, [roomsData]);
+
+  // Hàm lấy tên phòng
   const getTenPhong = (roomId) => {
-    const phong = roomData.find((room) => room.pc_id === roomId);
-    return phong ? phong.ten_phong : `Phòng ${roomId}`;
+    const roomIdRaw =
+      typeof roomId === "object"
+        ? roomId._id || roomId.roomId || roomId.phong_id || ""
+        : roomId || "";
+    const validRoomId = roomIdMap[roomIdRaw] || roomIdRaw;
+    const phong = roomsData.find(
+      (room) =>
+        room._id === validRoomId ||
+        room.roomId === validRoomId ||
+        room.phong_id === validRoomId
+    );
+    return phong
+      ? phong.name || phong.ten_phong || `Phòng ${validRoomId}`
+      : `Phòng ${validRoomId}`;
   };
 
-  // Nhóm suất chiếu theo ngày, sau đó theo phòng
-  const suatChieuTheoNgayVaPhong = filteredSuatChieu.reduce((acc, suat) => {
-    const ngay = suat.date;
-    const roomId = suat.roomId;
+  // Lọc suất chiếu theo movieId
+  const filteredSuatChieu = useMemo(() => {
+    console.log("movieId truyền vào:", movieId);
+    return showTimesData.filter((suat) => {
+      const movieIdRaw =
+        typeof suat.movieId === "object"
+          ? suat.movieId._id ||
+            suat.movieId.phim_id ||
+            suat.movieId.movieId ||
+            ""
+          : suat.movieId || "";
+      const validMovieId = movieIdMap[movieIdRaw] || movieIdRaw;
+      return String(validMovieId) === String(movieId);
+    });
+  }, [showTimesData, movieId, movieIdMap]);
 
-    if (!acc[ngay]) {
-      acc[ngay] = {};
-    }
-    if (!acc[ngay][roomId]) {
-      acc[ngay][roomId] = [];
-    }
-    acc[ngay][roomId].push(suat);
-    return acc;
-  }, {});
+  // Nhóm suất chiếu theo ngày, sau đó theo phòng
+  const suatChieuTheoNgayVaPhong = useMemo(() => {
+    return filteredSuatChieu.reduce((acc, suat) => {
+      const ngay = suat.date;
+      const roomIdRaw =
+        typeof suat.roomId === "object"
+          ? suat.roomId._id || suat.roomId.roomId || suat.roomId.phong_id || ""
+          : suat.roomId || "";
+      const validRoomId = roomIdMap[roomIdRaw] || roomIdRaw;
+
+      if (!acc[ngay]) {
+        acc[ngay] = {};
+      }
+      if (!acc[ngay][validRoomId]) {
+        acc[ngay][validRoomId] = [];
+      }
+      acc[ngay][validRoomId].push(suat);
+      return acc;
+    }, {});
+  }, [filteredSuatChieu, roomIdMap]);
 
   const handleBooking = (suatChieu) => {
+    // Tìm thông tin phim
+    const movie = moviesData.find((m) => {
+      const movieIdRaw =
+        typeof suatChieu.movieId === "object"
+          ? suatChieu.movieId._id ||
+            suatChieu.movieId.phim_id ||
+            suatChieu.movieId.movieId ||
+            ""
+          : suatChieu.movieId || "";
+      const validMovieId = movieIdMap[movieIdRaw] || movieIdRaw;
+      return String(validMovieId) === String(movieId);
+    });
+
+    // Tìm thông tin phòng
+    const room = roomsData.find((r) => {
+      const roomIdRaw =
+        typeof suatChieu.roomId === "object"
+          ? suatChieu.roomId._id ||
+            suatChieu.roomId.roomId ||
+            suatChieu.roomId.phong_id ||
+            ""
+          : suatChieu.roomId || "";
+      const validRoomId = roomIdMap[roomIdRaw] || roomIdRaw;
+      return (
+        r._id === validRoomId ||
+        r.roomId === validRoomId ||
+        r.phong_id === validRoomId
+      );
+    });
+
     navigate(`/booking/${suatChieu.suat_chieu_id}`, {
       state: {
         movieId: movieId,
         suatChieu: suatChieu,
+        movie: movie || {},
+        room: room || {},
       },
     });
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 2 }}>
+    <Container maxWidth="lg" sx={{ py: 2, position: "relative" }}>
+      {loading && (
+        <Box
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            bgcolor: "rgba(255,255,255,0.5)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <CircularProgress color="primary" />
+        </Box>
+      )}
       {Object.entries(suatChieuTheoNgayVaPhong).map(([ngay, phongData]) => (
         <Box key={ngay} sx={{ mb: 3 }}>
           {/* Header ngày chiếu */}
