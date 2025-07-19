@@ -11,6 +11,7 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import MovieIcon from "@mui/icons-material/Movie";
 import PeopleIcon from "@mui/icons-material/People";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import EventSeatIcon from "@mui/icons-material/EventSeat";
 import { useLocation, useNavigate } from "react-router-dom";
 import TheatersIcon from "@mui/icons-material/Theaters";
 const drawerWidth = 240;
@@ -29,10 +30,9 @@ const Sidebar = () => {
     },
     {
       text: "Quản lý phòng chiếu",
-      icon: <ShoppingCartIcon />,
+      icon: <EventSeatIcon />,
       path: "/admin/seatprice",
     },
-    { text: "Người dùng", icon: <PeopleIcon />, path: "/admin/users" },
   ];
 
   return (

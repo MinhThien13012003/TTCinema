@@ -16,6 +16,8 @@ import {
   Button,
   Snackbar,
   Alert,
+  Backdrop,
+  CircularProgress,
 } from "@mui/material";
 import SeatTable from "../SeatPriceManagement/SeatTable";
 import SeatGrid from "../SeatPriceManagement/SeatGrid";
@@ -35,6 +37,8 @@ const RoomManagement = ({ seatTypes }) => {
     message: "",
     severrity: "success",
   });
+  const [loading, setLoading] = useState(false);
+
   const [roomForm, setRoomForm] = useState({
     //phong_id: null,
     name: "",
@@ -138,6 +142,7 @@ const RoomManagement = ({ seatTypes }) => {
     fetchSeatsByRoomId(room._id);
   };
   const handleSubmit = async () => {
+    setLoading(true);
     if (!form.loai_ghe_id) {
       showSnackBar("Vui lòng chọn loại ghế!", "warning");
       return;
@@ -184,11 +189,13 @@ const RoomManagement = ({ seatTypes }) => {
     } catch (error) {
       //console.error(error);
       showSnackBar(`Có lỗi khi lưu ghê, ${error.message}`, "error");
+    } finally {
+      setLoading(false);
     }
   };
   const handleDelete = async () => {
     if (!editingSeat || !editingSeat._id) return;
-
+    setLoading(true);
     try {
       await axios.delete(`/api/seats/${editingSeat.ghe_id}`);
       showSnackBar("Xóa thành công!");
@@ -199,6 +206,7 @@ const RoomManagement = ({ seatTypes }) => {
       // console.log("loi xoa ", err);
     } finally {
       setConfirmOpen(false);
+      setLoading(false);
     }
   };
   const handleOpenDeleteDialogFromTable = (room) => {
@@ -206,6 +214,7 @@ const RoomManagement = ({ seatTypes }) => {
     setDeleteRoomDialogOpen(true);
   };
   const handleSubmitRoom = async () => {
+    setLoading(true);
     try {
       if (editingRoom) {
         try {
@@ -232,9 +241,12 @@ const RoomManagement = ({ seatTypes }) => {
       setDialogOpen(false);
     } catch (err) {
       //console.error("Lỗi khi lưu phòng", err);
+    } finally {
+      setLoading(false);
     }
   };
   const handleDeleteRoom = async (room) => {
+    setLoading(true);
     try {
       await axios.delete(`/api/rooms/${room.phong_id}`);
       fetchRooms();
@@ -246,6 +258,7 @@ const RoomManagement = ({ seatTypes }) => {
       setDeleteRoomDialogOpen(false);
       setRoomDialogOpen(false); // Đóng form sửa nếu đang mở
       setRoomToDelete(null);
+      setLoading(false);
     }
   };
   useEffect(() => {
@@ -317,6 +330,7 @@ const RoomManagement = ({ seatTypes }) => {
               sx={{
                 width: "150px",
               }}
+              disabled={loading}
             >
               Thêm nhiều ghế
             </Button>
@@ -402,10 +416,13 @@ const RoomManagement = ({ seatTypes }) => {
                 setRoomToDelete(editingRoom); // ✅ lưu phòng cần xóa
                 setDeleteRoomDialogOpen(true); // ✅ mở dialog xác nhận
               }}
+              disabled={loading}
             >
               Xoá
             </Button>
-            <Button onClick={handleSubmitRoom}>Lưu</Button>
+            <Button onClick={handleSubmitRoom} disabled={loading}>
+              Lưu
+            </Button>
           </DialogActions>
         </Dialog>
       </Box>
@@ -438,11 +455,18 @@ const RoomManagement = ({ seatTypes }) => {
         </DialogContent>
         <DialogActions>
           {editingSeat && (
-            <Button color="error" onClick={handleConfirmDelete}>
+            <Button
+              color="error"
+              onClick={handleConfirmDelete}
+              disabled={loading}
+            >
               Xóa
             </Button>
           )}
-          <Button onClick={() => setDialogOpen(false)}> Hủy</Button>
+          <Button onClick={() => setDialogOpen(false)} disabled={loading}>
+            {" "}
+            Hủy
+          </Button>
           <Button onClick={handleSubmit} variant="contained">
             Luu
           </Button>
@@ -476,8 +500,16 @@ const RoomManagement = ({ seatTypes }) => {
         <DialogTitle>Xác nhận xoá ghế</DialogTitle>
         <DialogContent>Bạn có chắc chắn muốn xoá ghế này không?</DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmOpen(false)}>Hủy</Button>
-          <Button onClick={() => handleDelete(editingSeat.ghe_id)}> Xoá</Button>
+          <Button onClick={() => setConfirmOpen(false)} disabled={loading}>
+            Hủy
+          </Button>
+          <Button
+            onClick={() => handleDelete(editingSeat.ghe_id)}
+            disabled={loading}
+          >
+            {" "}
+            Xoá
+          </Button>
         </DialogActions>
       </Dialog>
       <Dialog
@@ -490,7 +522,12 @@ const RoomManagement = ({ seatTypes }) => {
           không?
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteRoomDialogOpen(false)}>Huỷ</Button>
+          <Button
+            onClick={() => setDeleteRoomDialogOpen(false)}
+            disabled={loading}
+          >
+            Huỷ
+          </Button>
           <Button
             color="error"
             variant="contained"
@@ -499,11 +536,18 @@ const RoomManagement = ({ seatTypes }) => {
               setDeleteRoomDialogOpen(false);
               setRoomDialogOpen(false);
             }}
+            disabled={loading}
           >
             Xoá
           </Button>
         </DialogActions>
       </Dialog>
+      <Backdrop
+        open={loading}
+        sx={{ zIndex: (theme) => theme.zIndex.modal + 1, color: "#fff" }}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </Box>
   );
 };

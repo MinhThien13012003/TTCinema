@@ -88,16 +88,16 @@ const ShowTime = ({ movieId }) => {
       typeof roomId === "object"
         ? roomId._id || roomId.roomId || roomId.phong_id || ""
         : roomId || "";
-    const validRoomId = roomIdMap[roomIdRaw] || roomIdRaw;
-    const phong = roomsData.find(
-      (room) =>
-        room._id === validRoomId ||
-        room.roomId === validRoomId ||
-        room.phong_id === validRoomId
+
+    const validRoomId = String(roomIdMap?.[roomIdRaw] || roomIdRaw);
+
+    const phong = roomsData.find((room) =>
+      [room._id, room.roomId, room.phong_id].some(
+        (id) => String(id) === validRoomId
+      )
     );
-    return phong
-      ? phong.name || phong.ten_phong || `Phòng ${validRoomId}`
-      : `Phòng ${validRoomId}`;
+
+    return phong?.name || phong?.ten_phong || `Phòng ${validRoomId}`;
   };
 
   // Lọc suất chiếu theo movieId
