@@ -28,7 +28,7 @@ const Sidebar = () => {
       path: "/admin/showtimes",
     },
     {
-      text: "Quản lý ghế",
+      text: "Quản lý phòng chiếu",
       icon: <ShoppingCartIcon />,
       path: "/admin/seatprice",
     },
