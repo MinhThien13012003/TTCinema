@@ -49,6 +49,8 @@ const RoomManagement = ({ seatTypes }) => {
   });
   const [roomDialogOpen, setRoomDialogOpen] = useState(false);
   const [roomToDelete, setRoomToDelete] = useState(null);
+  const [loadingRooms, setLoadingRooms] = useState(false);
+  const [loadingSeats, setLoadingSeats] = useState(false);
 
   const [editingRoom, setEditingRoom] = useState(null);
   const openAddRoomDialog = () => {
@@ -115,15 +117,19 @@ const RoomManagement = ({ seatTypes }) => {
     setDialogOpen(true);
   };
   const fetchRooms = async () => {
+    setLoadingRooms(true);
     try {
       const res = await axios.get("/api/rooms");
       //console.log("Ds rooms:", res.data);
       setRooms(res.data);
     } catch (err) {
       //console.log("Lỗi khi lấy danh sách phòng:", err);
+    } finally {
+      setLoadingRooms(false);
     }
   };
   const fetchSeatsByRoomId = async (roomId) => {
+    setLoadingRooms(true);
     try {
       const res = await axios.get("/api/seats");
       const allSeats = res.data;
@@ -135,6 +141,8 @@ const RoomManagement = ({ seatTypes }) => {
       setSeat(filteredSeats);
     } catch (err) {
       //console.log("Loi lay ds ghe", err);
+    } finally {
+      setLoadingRooms(false);
     }
   };
   const handleSelectRoom = (room) => {
@@ -145,11 +153,21 @@ const RoomManagement = ({ seatTypes }) => {
     setLoading(true);
     if (!form.loai_ghe_id) {
       showSnackBar("Vui lòng chọn loại ghế!", "warning");
+      setLoading(false);
       return;
     }
     try {
       if (!form.loai_ghe_id) {
         alert("Vui lòng chọn loại ghế!");
+        return;
+      }
+      const totalSeats = Number(form.rows) * Number(form.columns);
+      const capacity = Number(form.capacity);
+      if (totalSeats > capacity) {
+        showSnackBar(
+          `Tổng số ghế (${totalSeats}) vượt quá sức chứa (${capacity})!`,
+          "error"
+        );
         return;
       }
 
@@ -214,37 +232,41 @@ const RoomManagement = ({ seatTypes }) => {
     setDeleteRoomDialogOpen(true);
   };
   const handleSubmitRoom = async () => {
+    const { name, type, capacity, rows, columns } = roomForm;
+    const totalSeats = Number(rows) * Number(columns);
+    const cap = Number(capacity);
+
+    if (!name || !type || !capacity || !rows || !columns) {
+      showSnackBar("Vui lòng nhập đầy đủ thông tin", "warning");
+      return;
+    }
+
+    if (totalSeats > cap) {
+      showSnackBar(
+        `Tổng số ghế (${totalSeats}) vượt quá sức chứa (${cap})!`,
+        "error"
+      );
+      return;
+    }
+
     setLoading(true);
     try {
       if (editingRoom) {
-        try {
-          console.log("PUT room payload", roomForm);
-          await axios.put(`/api/rooms/${editingRoom.phong_id}`, roomForm);
-          showSnackBar("Sửa thành công");
-          setRoomDialogOpen(false);
-        } catch (err) {
-          console.log(err);
-          showSnackBar(`Loi luu: ${err.message}`, "error");
-        }
+        await axios.put(`/api/rooms/${editingRoom.phong_id}`, roomForm);
+        showSnackBar("Sửa thành công");
       } else {
-        try {
-          console.log(roomForm);
-          await axios.post("/api/rooms", roomForm);
-          showSnackBar("Thêm thành công");
-          setRoomDialogOpen(false);
-        } catch (err) {
-          console.log(err);
-          showSnackBar(`Có lỗi khi lưu phong, ${err.message}`, "error");
-        }
+        await axios.post("/api/rooms", roomForm);
+        showSnackBar("Thêm thành công");
       }
-      fetchRooms(); // gọi lại API
-      setDialogOpen(false);
+      setRoomDialogOpen(false);
+      fetchRooms();
     } catch (err) {
-      //console.error("Lỗi khi lưu phòng", err);
+      showSnackBar(`Có lỗi khi lưu phòng: ${err.message}`, "error");
     } finally {
       setLoading(false);
     }
   };
+
   const handleDeleteRoom = async (room) => {
     setLoading(true);
     try {
@@ -313,6 +335,7 @@ const RoomManagement = ({ seatTypes }) => {
           onDelete={handleOpenDeleteDialogFromTable}
           selectedRoom={selectedRoom}
           onSelect={handleSelectRoom}
+          loading={loadingRooms}
         />
         {selectedRoom ? (
           <Box mt={2} sx={{ display: "flex", flexDirection: "column" }}>
@@ -340,6 +363,7 @@ const RoomManagement = ({ seatTypes }) => {
               seatTypes={seatTypes}
               onSelectSeat={openEditDialog}
               onAddSeat={openAddDialog}
+              loading={loadingSeats}
             />
           </Box>
         ) : (
@@ -374,6 +398,14 @@ const RoomManagement = ({ seatTypes }) => {
               value={roomForm.capacity}
               fullWidth
               margin="dense"
+              error={roomForm.rows * roomForm.columns > roomForm.capacity}
+              helperText={
+                roomForm.rows * roomForm.columns > roomForm.capacity
+                  ? `Tổng số ghế (${
+                      roomForm.rows * roomForm.columns
+                    }) > sức chứa (${roomForm.capacity})`
+                  : ""
+              }
               onChange={(e) =>
                 setRoomForm({ ...roomForm, capacity: e.target.value })
               }
@@ -409,17 +441,6 @@ const RoomManagement = ({ seatTypes }) => {
             />
           </DialogContent>
           <DialogActions>
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={() => {
-                setRoomToDelete(editingRoom); // ✅ lưu phòng cần xóa
-                setDeleteRoomDialogOpen(true); // ✅ mở dialog xác nhận
-              }}
-              disabled={loading}
-            >
-              Xoá
-            </Button>
             <Button onClick={handleSubmitRoom} disabled={loading}>
               Lưu
             </Button>

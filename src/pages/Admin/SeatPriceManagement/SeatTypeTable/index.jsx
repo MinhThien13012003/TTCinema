@@ -15,12 +15,13 @@ import {
   Grid,
   Snackbar,
   Alert,
+  Backdrop,
+  CircularProgress,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "../../../../service/axios";
-import { Backdrop, CircularProgress } from "@mui/material";
 
 const SeatTypeTable = ({ seatTypes, onRefresh }) => {
   const [open, setOpen] = useState(false);
@@ -36,14 +37,10 @@ const SeatTypeTable = ({ seatTypes, onRefresh }) => {
     type: "success",
     message: "",
   });
-  const [loading, setLoading] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState({
-    open: false,
-    id: null,
-  });
-  const handleDeleteClick = (id) => {
-    setConfirmDelete({ open: true, id });
-  };
+
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const [loadingDelete, setLoadingDelete] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null });
 
   const handleOpen = (item = null) => {
     setEditItem(item);
@@ -59,47 +56,47 @@ const SeatTypeTable = ({ seatTypes, onRefresh }) => {
   };
 
   const handleClose = () => {
+    if (loadingSubmit) return;
     setOpen(false);
     setEditItem(null);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = async () => {
-    setLoading(true);
+    setLoadingSubmit(true);
     try {
       if (editItem) {
         await axios.put(`/api/seat-types/${editItem.loai_ghe_id}`, form);
       } else {
-        try {
-          console.log("data gửi đi", form);
-          await axios.post("/api/seat-types", form);
-        } catch (err) {
-          console.log(err);
-        }
+        await axios.post("/api/seat-types", form);
       }
       setAlert({ open: true, type: "success", message: "Lưu thành công!" });
-      handleClose();
       onRefresh();
+      setOpen(false); // Chỉ đóng khi thành công
     } catch (err) {
+      console.error(err);
       setAlert({ open: true, type: "error", message: "Lỗi khi lưu dữ liệu" });
     } finally {
-      setLoading(false);
+      setLoadingSubmit(false);
     }
   };
 
+  const handleDeleteClick = (id) => {
+    setConfirmDelete({ open: true, id });
+  };
+
   const handleConfirmDelete = async () => {
-    setLoading(true);
+    setLoadingDelete(true);
     try {
       await axios.delete(`/api/seat-types/${confirmDelete.id}`);
-      onRefresh();
       setAlert({ open: true, type: "success", message: "Xóa thành công!" });
+      onRefresh();
     } catch (err) {
       setAlert({ open: true, type: "error", message: "Không thể xoá" });
     } finally {
-      setLoading(false);
+      setLoadingDelete(false);
       setConfirmDelete({ open: false, id: null });
     }
   };
@@ -158,88 +155,60 @@ const SeatTypeTable = ({ seatTypes, onRefresh }) => {
         </TableBody>
       </Table>
 
+      {/* Form Dialog */}
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
         <DialogTitle>
           {editItem ? "Chỉnh sửa loại ghế" : "Thêm loại ghế"}
         </DialogTitle>
-
         <DialogContent dividers>
-          {loading ? (
-            <Grid
-              container
-              justifyContent="center"
-              alignItems="center"
-              sx={{ height: 150 }}
-            >
-              <CircularProgress />
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                name="name"
+                label="Tên loại ghế"
+                value={form.name}
+                onChange={handleChange}
+                fullWidth
+              />
             </Grid>
-          ) : (
-            <Grid container spacing={2} mt={0.5}>
-              <Grid item xs={12}>
-                <TextField
-                  name="name"
-                  label="Tên loại ghế"
-                  value={form.name}
-                  onChange={handleChange}
-                  fullWidth
-                  variant="outlined"
-                  sx={{ width: "150px" }}
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  name="price"
-                  label="Giá vé"
-                  type="number"
-                  value={form.price}
-                  onChange={handleChange}
-                  fullWidth
-                  variant="outlined"
-                  InputProps={{ inputProps: { min: 0 } }}
-                  sx={{ width: "150px" }}
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  name="color"
-                  label="Màu sắc"
-                  //type="color"
-                  value={form.color}
-                  onChange={handleChange}
-                  fullWidth
-                  variant="outlined"
-                  InputLabelProps={{ shrink: true }}
-                  sx={{ width: "150px" }}
-                />
-              </Grid>
+            <Grid item xs={12}>
+              <TextField
+                name="price"
+                label="Giá vé"
+                type="number"
+                value={form.price}
+                onChange={handleChange}
+                fullWidth
+                InputProps={{ inputProps: { min: 0 } }}
+              />
             </Grid>
-          )}
+            <Grid item xs={12}>
+              <TextField
+                name="color"
+                label="Màu sắc"
+                value={form.color}
+                onChange={handleChange}
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+          </Grid>
         </DialogContent>
-
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={handleClose} disabled={loading}>
+        <DialogActions>
+          <Button onClick={handleClose} disabled={loadingSubmit}>
             Hủy
           </Button>
           <Button
-            onClick={handleSubmit}
             variant="contained"
-            color="primary"
-            disabled={loading}
+            onClick={handleSubmit}
+            disabled={loadingSubmit}
           >
-            {loading ? "Đang lưu..." : "Lưu"}
+            {loadingSubmit ? "Đang lưu..." : "Lưu"}
           </Button>
         </DialogActions>
       </Dialog>
 
-      <Snackbar
-        open={alert.open}
-        autoHideDuration={3000}
-        onClose={() => setAlert({ ...alert, open: false })}
-      >
-        <Alert severity={alert.type}>{alert.message}</Alert>
-      </Snackbar>
+      {/* Delete confirm dialog */}
       <Dialog
         open={confirmDelete.open}
         onClose={() => setConfirmDelete({ open: false, id: null })}
@@ -251,18 +220,35 @@ const SeatTypeTable = ({ seatTypes, onRefresh }) => {
             Hủy
           </Button>
           <Button
-            onClick={handleConfirmDelete}
             variant="contained"
             color="error"
-            disabled={loading}
+            onClick={handleConfirmDelete}
+            disabled={loadingDelete}
           >
-            {loading ? "Đang xoá..." : "Xác nhận"}
+            {loadingDelete ? "Đang xoá..." : "Xác nhận"}
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Alert */}
+      <Snackbar
+        open={alert.open}
+        autoHideDuration={4000}
+        onClose={() => setAlert({ ...alert, open: false })}
+      >
+        <Alert
+          severity={alert.type}
+          variant="filled"
+          onClose={() => setAlert({ ...alert, open: false })}
+        >
+          {alert.message}
+        </Alert>
+      </Snackbar>
+
+      {/* Global loading overlay (optional) */}
       <Backdrop
+        open={loadingSubmit || loadingDelete}
         sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={loading}
       >
         <CircularProgress color="inherit" />
       </Backdrop>

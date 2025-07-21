@@ -1,12 +1,21 @@
-import { Button, Box, Tooltip } from "@mui/material";
+import { Button, Box, Tooltip, Skeleton } from "@mui/material";
 
-const SeatGrid = ({ room, seats, seatTypes, onSelectSeat, onAddSeat }) => {
-  const rows = room?.rows;
-  const cols = room?.columns;
+const SeatGrid = ({
+  room,
+  seats,
+  seatTypes,
+  onSelectSeat,
+  onAddSeat,
+  loading,
+}) => {
+  const rows = room?.rows || 0;
+  const cols = room?.columns || 0;
+
   const columnFromSeat = (seatNumber) => {
     const match = seatNumber.match(/[A-Z](\d+)/i);
     return match ? parseInt(match[1]) : null;
   };
+
   const seatMap = {};
   seats.forEach((seat) => {
     const column = columnFromSeat(seat.seatNumber);
@@ -22,26 +31,33 @@ const SeatGrid = ({ room, seats, seatTypes, onSelectSeat, onAddSeat }) => {
   const seatTypeColorMap = {};
   seatTypes.forEach((type) => {
     seatTypeColorMap[type._id] = type.color || "gray";
-    // console.log("mau ghe", seatTypeColorMap);
   });
+
   return (
     <Box display="inline-block" p={2} border="1px solid #ccc" borderRadius={2}>
       {Array.from({ length: rows }, (_, rowIdx) => {
-        const rowChar = String.fromCharCode(65 + rowIdx); // A, B, C...
-
+        const rowChar = String.fromCharCode(65 + rowIdx);
         return (
           <Box key={rowChar} display="flex" justifyContent="center" mb={1}>
             {Array.from({ length: cols }, (_, colIdx) => {
               const colNum = colIdx + 1;
               const key = `${rowChar}-${colNum}`;
-              const seat = seatMap[key];
 
+              if (loading) {
+                return (
+                  <Box key={key} display="inline-block" m={0.5}>
+                    <Skeleton variant="circular" width={40} height={40} />
+                  </Box>
+                );
+              }
+
+              const seat = seatMap[key];
               const seatType =
                 seat?.seatTypeId && seatTypeMap[seat.seatTypeId._id];
-
               const bgColor = seat
                 ? seatTypeColorMap[seatType?._id] || "gray"
                 : "#e0e0e0";
+
               return (
                 <Box key={key} display="inline-block">
                   <Tooltip
@@ -55,7 +71,6 @@ const SeatGrid = ({ room, seats, seatTypes, onSelectSeat, onAddSeat }) => {
                       variant="contained"
                       size="small"
                       onClick={() => {
-                        console.log("sear: ", seat);
                         seat
                           ? onSelectSeat(seat)
                           : onAddSeat({ row: rowChar, column: colNum });

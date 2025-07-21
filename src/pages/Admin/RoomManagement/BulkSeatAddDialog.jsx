@@ -9,8 +9,10 @@ import {
   Button,
   Alert,
   Snackbar,
+  CircularProgress,
+  Backdrop,
 } from "@mui/material";
-import axios from "../../../service/axios"; // Đường dẫn tùy dự án của bạn
+import axios from "../../../service/axios";
 
 const BulkSeatAddDialog = ({
   open,
@@ -24,11 +26,13 @@ const BulkSeatAddDialog = ({
   const [multiCount, setMultiCount] = useState(10);
   const [multiSeatType, setMultiSeatType] = useState("");
   const [multiStart, setMultiStart] = useState(1);
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
   });
+
   const existingSeatNumbers = new Set(
     seats.map((s) => s.seatNumber.toUpperCase())
   );
@@ -38,8 +42,14 @@ const BulkSeatAddDialog = ({
   };
 
   const handleSubmit = async () => {
-    if (!multiRow || !multiCount || !multiSeatType) {
-      showSnackbar("Vui lòng nhập đầy đủ thông tin.", "warning");
+    if (
+      !multiRow ||
+      !multiCount ||
+      !multiSeatType ||
+      multiCount < 1 ||
+      multiStart < 1
+    ) {
+      showSnackbar("Vui lòng nhập đầy đủ và hợp lệ thông tin.", "warning");
       return;
     }
 
@@ -57,25 +67,31 @@ const BulkSeatAddDialog = ({
         });
       }
     }
+
     if (payloads.length === 0) {
       showSnackbar("Tất cả ghế đã tồn tại. Không có ghế mới để thêm.", "info");
       return;
     }
 
+    setLoadingSubmit(true);
     try {
       await Promise.all(payloads.map((item) => axios.post("/api/seats", item)));
-      showSnackbar(`Đã thêm ${multiCount} ghế hàng ${multiRow} thành công!`);
+      showSnackbar(
+        `Đã thêm ${payloads.length} ghế hàng ${multiRow} thành công!`
+      );
       onSuccess();
-      onClose();
+      onClose(); // ✅ Chỉ đóng sau khi thành công
     } catch (err) {
       console.error(err);
       showSnackbar("Có lỗi xảy ra khi thêm nhiều ghế", "error");
+    } finally {
+      setLoadingSubmit(false);
     }
   };
 
   return (
     <>
-      <Dialog open={open} onClose={onClose}>
+      <Dialog open={open} onClose={loadingSubmit ? undefined : onClose}>
         <DialogTitle>Thêm nhiều ghế cùng lúc</DialogTitle>
         <DialogContent>
           <TextField
@@ -84,22 +100,25 @@ const BulkSeatAddDialog = ({
             onChange={(e) => setMultiRow(e.target.value.toUpperCase())}
             fullWidth
             margin="dense"
+            disabled={loadingSubmit}
           />
           <TextField
             label="Số bắt đầu"
             type="number"
             value={multiStart}
-            onChange={(e) => setMultiStart(parseInt(e.target.value))}
+            onChange={(e) => setMultiStart(parseInt(e.target.value) || 1)}
             fullWidth
             margin="dense"
+            disabled={loadingSubmit}
           />
           <TextField
             label="Số lượng ghế"
             type="number"
             value={multiCount}
-            onChange={(e) => setMultiCount(parseInt(e.target.value))}
+            onChange={(e) => setMultiCount(parseInt(e.target.value) || 1)}
             fullWidth
             margin="dense"
+            disabled={loadingSubmit}
           />
           <TextField
             select
@@ -108,6 +127,7 @@ const BulkSeatAddDialog = ({
             onChange={(e) => setMultiSeatType(e.target.value)}
             fullWidth
             margin="dense"
+            disabled={loadingSubmit}
           >
             {seatTypes.map((type) => (
               <MenuItem key={type._id} value={type.loai_ghe_id}>
@@ -117,9 +137,19 @@ const BulkSeatAddDialog = ({
           </TextField>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>Hủy</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            Tạo ghế
+          <Button onClick={onClose} disabled={loadingSubmit}>
+            Hủy
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            disabled={loadingSubmit}
+          >
+            {loadingSubmit ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              "Tạo ghế"
+            )}
           </Button>
         </DialogActions>
       </Dialog>
@@ -139,6 +169,10 @@ const BulkSeatAddDialog = ({
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      <Backdrop open={loadingSubmit} sx={{ zIndex: 1301 }}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </>
   );
 };
