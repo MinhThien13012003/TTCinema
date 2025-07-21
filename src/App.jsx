@@ -22,6 +22,7 @@ import MovieCard from "./pages/Home/MainContent/MovieCard";
 import SeatPriceManagement from "./pages/Admin/SeatPriceManagement";
 import ShowTimesManagement from "./pages/Admin/ShowTimesManagament";
 import AdminRoute from "./route/AdminRoute";
+import BookingConfirm from "./pages/BookingConfirm";
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
           <Route path={PATH.ACCOUNTPROFILE} element={<AccountProfile />} />
           <Route path={PATH.MOVIE} element={<Movie />} />
           <Route path={PATH.BOOKING_ROUTE} element={<Booking />} />
+          <Route path={PATH.BOOKINGCONFIRM} element={<BookingConfirm />} />
         </Route>
 
         {/* Layout admin */}

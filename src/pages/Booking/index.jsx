@@ -144,33 +144,17 @@ const Booking = () => {
       ? groupSeatsByRow(seats, room.rows, room.columns)
       : {};
 
-  const handlePayment = async () => {
-    if (selectedSeats.length === 0) return;
-    try {
-      const bookingData = {
-        suatChieuId: suatId,
-        seats: selectedSeats.map((seatNumber) => {
-          const seat = seats.find(
-            (s) => s.seatNumber === normalizeSeatNumber(seatNumber)
-          );
-          return {
-            ghe_id: seat.ghe_id,
-            seatNumber,
-            price: seat.price,
-          };
-        }),
-        totalAmount: total,
-      };
-      const res = await axios.post("/api/bookings", bookingData);
-      if (res.data) {
-        console.log("Booking success:", res.data);
-        // Bạn có thể điều hướng tới trang xác nhận:
-        // navigate("/booking/success");
-      }
-    } catch (err) {
-      console.error("Booking failed:", err);
-      setError("Có lỗi xảy ra khi đặt vé. Vui lòng thử lại.");
-    }
+  const handlePayment = () => {
+    navigate("/booking/confirm", {
+      state: {
+        movie,
+        showtime,
+        room,
+        selectedSeats,
+        currentSeats: seats, // để dùng cho tạo vé
+        total,
+      },
+    });
   };
 
   if (loading) {
