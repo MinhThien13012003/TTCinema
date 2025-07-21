@@ -28,6 +28,10 @@ import {
   Rating,
   Divider,
   Alert,
+  CircularProgress,
+  Backdrop,
+  Skeleton,
+  LinearProgress,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -40,49 +44,51 @@ import {
   CalendarToday as CalendarIcon,
   AccessTime as TimeIcon,
   Person as PersonIcon,
+  Refresh as RefreshIcon,
 } from "@mui/icons-material";
-//import movieData from "../../../utils/movieData";
 import showtimesData from "../../../utils/movieData";
-import AddGenre from "./AddGenres";
 import axios from "../../../service/axios";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-// export const theLoaiOptions = [
-//   "Hành động",
-//   "Hài",
-//   "Tình cảm",
-//   "Kinh dị",
-//   "Hoạt hình",
-//   "Phiêu lưu",
-// ];
 export const doTuoiOptions = ["P", "T13", "T16", "T18", "C18"];
 
 const MovieManagement = () => {
   const [movies, setMovies] = useState([]);
   const [filteredMovies, setFilteredMovies] = useState([]);
   const [genres, setGenres] = useState([]);
+  const [showtimes, setShowtimes] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingMovie, setEditingMovie] = useState(null);
   const [tabValue, setTabValue] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterGenre, setFilterGenre] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [movieToDelete, setMovieToDelete] = useState(null);
+
+  // Loading states
+  const [loading, setLoading] = useState(false);
+  const [moviesLoading, setMoviesLoading] = useState(true);
+  const [genresLoading, setGenresLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
   });
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [movieToDelete, setMovieToDelete] = useState(null);
+
   const formatDateForInput = (isoString) => {
     if (!isoString) return "";
     try {
       const date = new Date(isoString);
-      if (isNaN(date.getTime())) return ""; // Xử lý trường hợp date không hợp lệ
-      return date.toISOString().split("T")[0]; // Trả về yyyy-MM-dd
+      if (isNaN(date.getTime())) return "";
+      return date.toISOString().split("T")[0];
     } catch (err) {
       console.error("Error parsing date:", isoString, err);
       return "";
@@ -107,7 +113,21 @@ const MovieManagement = () => {
     language: "",
   });
 
-  const fetchMovies = async () => {
+  // Fetch showtimes to check movie dependencies
+  const fetchShowtimes = async () => {
+    try {
+      const response = await axios.get("/api/showtimes");
+      console.log(response.data);
+      setShowtimes(response.data);
+    } catch (error) {
+      console.error("Lỗi khi lấy lịch chiếu:", error);
+      // Fallback to static data if API fails
+      setShowtimes(showtimesData);
+    }
+  };
+
+  const fetchMovies = async (showLoading = true) => {
+    if (showLoading) setMoviesLoading(true);
     try {
       const response = await axios.get("/api/movies");
       console.log("API Response:", response.data);
@@ -144,23 +164,57 @@ const MovieManagement = () => {
       setFilteredMovies(formatted);
     } catch (error) {
       console.error("Lỗi khi lấy phim:", error);
+      setSnackbar({
+        open: true,
+        message: "Không thể tải danh sách phim!",
+        severity: "error",
+      });
+    } finally {
+      if (showLoading) setMoviesLoading(false);
     }
   };
 
+  const fetchGenres = async () => {
+    setGenresLoading(true);
+    try {
+      const res = await axios.get("/api/genres");
+      setGenres(res.data);
+    } catch (err) {
+      console.error("Lỗi khi lấy thể loại:", err);
+      setSnackbar({
+        open: true,
+        message: "Không thể tải danh sách thể loại!",
+        severity: "error",
+      });
+    } finally {
+      setGenresLoading(false);
+    }
+  };
+
+  // Initial data fetch
   useEffect(() => {
-    const fetchGenres = async () => {
+    const initData = async () => {
+      setLoading(true);
       try {
-        const res = await axios.get("/api/genres");
-        setGenres(res.data);
-      } catch (err) {
-        console.error("Lỗi khi lấy thể loại:", err);
+        await Promise.all([fetchGenres(), fetchMovies(), fetchShowtimes()]);
+      } finally {
+        setLoading(false);
       }
     };
-
-    fetchGenres();
-    fetchMovies();
+    initData();
   }, []);
 
+  // Auto refresh every 30 seconds for real-time updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchMovies(false); // Refresh without showing loading
+      fetchShowtimes();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Filter movies based on search and tab
   useEffect(() => {
     let filtered = [...movies];
     if (filterGenre)
@@ -178,18 +232,24 @@ const MovieManagement = () => {
     setFilteredMovies(filtered);
   }, [movies, searchTerm, filterGenre, tabValue]);
 
-  useEffect(() => {
-    // Hiển thị hoặc thực hiện hành động sau khi snackbar đóng
-    if (!snackbar.open && snackbar.message) {
-      fetchMovies(); // Làm mới danh sách phim sau khi thông báo đóng
+  const handleRefresh = async () => {
+    setLoading(true);
+    try {
+      await Promise.all([fetchMovies(false), fetchShowtimes()]);
+      setSnackbar({
+        open: true,
+        message: "Dữ liệu đã được cập nhật!",
+        severity: "success",
+      });
+    } finally {
+      setLoading(false);
     }
-  }, [snackbar.open, snackbar.message]);
+  };
 
   const handleOpenDialog = async (movie = null) => {
     try {
       if (genres.length === 0) {
-        const genreRes = await axios.get("/api/genres");
-        setGenres(genreRes.data);
+        await fetchGenres();
       }
 
       setEditingMovie(movie);
@@ -199,7 +259,7 @@ const MovieManagement = () => {
               ...movie,
               the_loai: movie.the_loai,
               genreId: movie.genreId,
-              releaseDate: formatDateForInput(movie.releaseDate), // Chuyển đổi định dạng
+              releaseDate: formatDateForInput(movie.releaseDate),
               endDate: formatDateForInput(movie.endDate),
             }
           : {
@@ -214,9 +274,10 @@ const MovieManagement = () => {
               image: "",
               trailer: "",
               nhan_phim: "P",
-              ngay_cong_chieu: "",
-              ngay_ket_thuc: "",
+              releaseDate: "",
+              endDate: "",
               trang_thai: "sap_chieu",
+              language: "",
             }
       );
 
@@ -245,12 +306,13 @@ const MovieManagement = () => {
       });
     }
 
+    setSaveLoading(true);
     const movieToSend = {
-      phim_id: Math.floor(Math.random() * 1000000), // giả lập ID
+      phim_id: editingMovie?.phim_id || Math.floor(Math.random() * 1000000),
       title: movieForm.ten_phim,
       description: movieForm.mo_ta,
       duration: movieForm.thoi_luong,
-      genre: movieForm.the_loai.flat(), // Làm phẳng mảng để tránh lồng nhau
+      genre: movieForm.the_loai.flat(),
       actors: movieForm.dien_vien,
       director: movieForm.dao_dien,
       language: movieForm.quoc_gia === "Việt Nam" ? "Vietnamese" : "English",
@@ -267,7 +329,7 @@ const MovieManagement = () => {
 
     try {
       if (editingMovie) {
-        console.log("Phim gửi đi:", movieToSend);
+        console.log("Cập nhật phim:", movieToSend);
         await axios.put(`/api/movies/${editingMovie.phim_id}`, movieToSend);
         setSnackbar({
           open: true,
@@ -275,7 +337,7 @@ const MovieManagement = () => {
           severity: "success",
         });
       } else {
-        console.log("Phim gửi đi:", movieToSend);
+        console.log("Thêm phim mới:", movieToSend);
         await axios.post("/api/movies", movieToSend);
         setSnackbar({
           open: true,
@@ -284,125 +346,239 @@ const MovieManagement = () => {
         });
       }
 
-      const refreshed = await axios.get("/api/movies");
-      const today = new Date();
-      const formatted = refreshed.data.map((movie) => {
-        const releaseDate = new Date(movie.releaseDate);
-        const endDate = new Date(movie.endDate);
-        let trang_thai = "sap_chieu";
-        if (releaseDate <= today && endDate >= today) trang_thai = "dang_chieu";
-        else if (endDate < today) trang_thai = "het_chieu";
-
-        return {
-          phim_id: movie.phim_id,
-          ten_phim: movie.title,
-          mo_ta: movie.description,
-          thoi_luong: movie.duration,
-          the_loai: movie.genresId || [],
-          dien_vien: Array.isArray(movie.actors) ? movie.actors : [],
-          dao_dien: movie.director || "",
-          quoc_gia: movie.language === "Vietnamese" ? "Việt Nam" : "Mỹ",
-          nam_phat_hanh: new Date(movie.releaseDate).getFullYear(),
-          image: movie.poster,
-          trailer: movie.trailer,
-          nhan_phim: movie.label || "P",
-          releaseDate: movie.releaseDate,
-          endDate: movie.endDate,
-          trang_thai,
-        };
-      });
-
-      setMovies(formatted);
+      // Auto close dialog and refresh data
       setOpenDialog(false);
+      await fetchMovies(false);
     } catch (error) {
       console.error("Lỗi khi lưu phim:", error);
       setSnackbar({
         open: true,
-        message: "Có lỗi khi lưu phim!",
+        message: error.response?.data?.message || "Có lỗi khi lưu phim!",
         severity: "error",
       });
+    } finally {
+      setSaveLoading(false);
     }
   };
 
+  const checkMovieHasShowtimes = (movie) => {
+    if (!movie || !movie.ten_phim) return false;
+
+    return showtimes.some((showtime) => {
+      const title = showtime?.movieId?.title;
+      return (
+        typeof title === "string" &&
+        title.toLowerCase().trim() === movie.ten_phim.toLowerCase().trim()
+      );
+    });
+  };
   const handleDeleteClick = (movie) => {
     console.log("Movie object:", movie);
-    const hasShowtime = showtimesData.some((s) => s.phim_id === movie.phim_id);
+    const hasShowtime = checkMovieHasShowtimes(movie);
+    console.log(hasShowtime);
+    console.log("Movie ID:", movie.phim_id);
+    console.log(
+      "Matched showtimes:",
+      showtimes.filter((s) => s.movieId?._id === movie.phim_id)
+    );
+
     if (hasShowtime) {
       return setSnackbar({
         open: true,
-        message: "Không thể xóa phim vì còn lịch chiếu!",
-        severity: "error",
+        message:
+          "Không thể xóa phim vì còn lịch chiếu hoặc đã có khách đặt vé!",
+        severity: "warning",
       });
     }
+
     setMovieToDelete(movie);
     setDeleteDialogOpen(true);
   };
 
-  const confirmDeleteMovie = async (movie) => {
+  const confirmDeleteMovie = async () => {
+    if (!movieToDelete) return;
+
+    setDeleteLoading(true);
     try {
-      console.log("Phim ID cần xóa:", movie.phim_id, typeof movie.phim_id);
-      await axios.delete(`/api/movies/${movie.phim_id}`);
+      console.log("Xóa phim ID:", movieToDelete.phim_id);
+      await axios.delete(`/api/movies/${movieToDelete.phim_id}`);
+
       setSnackbar({
         open: true,
-        message: "Xóa phim thành công!",
+        message: `Xóa phim "${movieToDelete.ten_phim}" thành công!`,
         severity: "success",
       });
+
+      // Auto close dialog and refresh data
       setDeleteDialogOpen(false);
       setMovieToDelete(null);
-      fetchMovies();
+      await fetchMovies(false);
     } catch (error) {
       console.error("Lỗi khi xóa phim:", error);
       setSnackbar({
         open: true,
-        message: "Xóa phim thất bại!",
+        message: error.response?.data?.message || "Xóa phim thất bại!",
         severity: "error",
       });
+    } finally {
+      setDeleteLoading(false);
     }
+  };
+
+  const renderMovieCard = (movie) => {
+    const hasShowtimes = checkMovieHasShowtimes(movie.phim_id);
+
+    return (
+      <Grid item xs={12} sm={6} md={4} lg={3} key={movie.phim_id}>
+        <Card
+          sx={{
+            width: 320,
+            height: 420,
+            display: "flex",
+            flexDirection: "column",
+            position: "relative",
+          }}
+        >
+          <CardMedia
+            component="img"
+            height="200"
+            image={movie.image || "/placeholder-movie.jpg"}
+            alt={movie.ten_phim}
+          />
+          <CardContent sx={{ flex: 1, minHeight: 0 }}>
+            <Typography variant="h6" noWrap title={movie.ten_phim}>
+              {movie.ten_phim}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" noWrap>
+              Đạo diễn: {movie.dao_dien}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" noWrap>
+              Diễn viên:{" "}
+              {Array.isArray(movie.dien_vien)
+                ? movie.dien_vien.join(", ")
+                : movie.dien_vien}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" noWrap>
+              Thể loại:{" "}
+              {Array.isArray(movie.the_loai)
+                ? movie.the_loai.join(", ")
+                : movie.the_loai}
+            </Typography>
+            <Typography variant="caption">
+              {movie.thoi_luong} phút | {movie.nhan_phim} |{" "}
+              {dayjs(movie.releaseDate)
+                .tz("Asia/Ho_Chi_Minh")
+                .format("DD/MM/YYYY")}{" "}
+              -{" "}
+              {dayjs(movie.endDate).tz("Asia/Ho_Chi_Minh").format("DD/MM/YYYY")}
+            </Typography>
+          </CardContent>
+          <CardActions>
+            <Button
+              size="small"
+              onClick={() => handleOpenDialog(movie)}
+              startIcon={<EditIcon />}
+              disabled={loading}
+            >
+              Sửa
+            </Button>
+            <IconButton
+              size="small"
+              color="error"
+              onClick={() => handleDeleteClick(movie)}
+              disabled={loading}
+              title={
+                hasShowtimes ? "Không thể xóa - có lịch chiếu" : "Xóa phim"
+              }
+            >
+              <DeleteIcon />
+            </IconButton>
+          </CardActions>
+        </Card>
+      </Grid>
+    );
+  };
+
+  const renderSkeletonCards = () => {
+    return Array.from({ length: 8 }).map((_, index) => (
+      <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+        <Card sx={{ width: 320, height: 420 }}>
+          <Skeleton variant="rectangular" height={200} />
+          <CardContent>
+            <Skeleton variant="text" height={32} />
+            <Skeleton variant="text" height={20} />
+            <Skeleton variant="text" height={20} />
+            <Skeleton variant="text" height={20} />
+            <Skeleton variant="text" height={16} />
+          </CardContent>
+          <CardActions>
+            <Skeleton variant="rectangular" width={60} height={30} />
+            <Skeleton variant="circular" width={30} height={30} />
+          </CardActions>
+        </Card>
+      </Grid>
+    ));
   };
 
   return (
     <Box p={3}>
+      {/* Loading backdrop */}
+      <Backdrop open={loading} sx={{ zIndex: 1300 }}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
+
+      {/* Header */}
       <Box
         display="flex"
         justifyContent="space-between"
         alignItems="center"
         mb={2}
       >
-        <Typography variant="h4" fontWeight={700}>
-          <MovieIcon /> Quản lý phim
+        <Typography variant="h4" fontWeight={700} color="primary">
+          <MovieIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+          Quản lý phim
         </Typography>
         <Box display="flex" gap={1}>
-          <AddGenre onGenreAdded={(genre) => console.log("Thêm:", genre)} />
+          <IconButton
+            onClick={handleRefresh}
+            disabled={loading}
+            title="Làm mới"
+          >
+            <RefreshIcon />
+          </IconButton>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => handleOpenDialog()}
+            disabled={loading}
           >
             Thêm phim
           </Button>
         </Box>
       </Box>
 
+      {/* Search and Filter */}
       <Paper sx={{ p: 2, mb: 2 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
             <TextField
               fullWidth
-              placeholder="Tìm kiếm..."
+              placeholder="Tìm kiếm phim..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              disabled={moviesLoading}
               InputProps={{
                 startAdornment: (
-                  <InputAdornment nment position="start">
+                  <InputAdornment position="start">
                     <SearchIcon />
                   </InputAdornment>
                 ),
               }}
             />
           </Grid>
-          <Grid>
-            <FormControl sx={{ minWidth: 200, width: "100%", maxWidth: 300 }}>
-              <InputLabel size="medium">Thể loại</InputLabel>
+          <Grid item xs={12} md={6} sx={{ minWidth: "100px" }}>
+            <FormControl fullWidth disabled={genresLoading || moviesLoading}>
+              <InputLabel>Thể loại</InputLabel>
               <Select
                 value={filterGenre}
                 onChange={(e) => setFilterGenre(e.target.value)}
@@ -420,84 +596,51 @@ const MovieManagement = () => {
         </Grid>
       </Paper>
 
+      {/* Tabs */}
       <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)} sx={{ mb: 2 }}>
-        <Tab label="Tất cả" />
-        <Tab label="Đang chiếu" />
-        <Tab label="Sắp chiếu" />
-        <Tab label="Hết chiếu" />
+        <Tab label={`Tất cả (${movies.length})`} />
+        <Tab
+          label={`Đang chiếu (${
+            movies.filter((m) => m.trang_thai === "dang_chieu").length
+          })`}
+        />
+        <Tab
+          label={`Sắp chiếu (${
+            movies.filter((m) => m.trang_thai === "sap_chieu").length
+          })`}
+        />
+        <Tab
+          label={`Hết chiếu (${
+            movies.filter((m) => m.trang_thai === "het_chieu").length
+          })`}
+        />
       </Tabs>
 
+      {/* Movies Grid */}
       <Grid container spacing={3}>
-        {filteredMovies.map((movie) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={movie.phim_id}>
-            <Card
-              sx={{
-                width: 320,
-                height: 420,
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              <CardMedia
-                component="img"
-                height="200"
-                image={movie.image}
-                alt={movie.ten_phim}
-              />
-              <CardContent sx={{ flex: 1, minHeight: 0 }}>
-                <Typography variant="h6" noWrap>
-                  {movie.ten_phim}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" noWrap>
-                  Đạo diễn: {movie.dao_dien}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" noWrap>
-                  Diễn viên:{" "}
-                  {Array.isArray(movie.dien_vien)
-                    ? movie.dien_vien.join(", ")
-                    : movie.dien_vien}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" noWrap>
-                  Thể loại:{" "}
-                  {Array.isArray(movie.the_loai)
-                    ? movie.the_loai.join(", ")
-                    : movie.the_loai}
-                </Typography>
-                <Typography variant="caption">
-                  {movie.thoi_luong} phút | {movie.nhan_phim} |{" "}
-                  {dayjs(movie.releaseDate)
-                    .tz("Asia/Ho_Chi_Minh")
-                    .format("DD/MM/YYYY")}{" "}
-                  -{" "}
-                  {dayjs(movie.endDate)
-                    .tz("Asia/Ho_Chi_Minh")
-                    .format("DD/MM/YYYY")}
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button
-                  size="small"
-                  onClick={() => handleOpenDialog(movie)}
-                  startIcon={<EditIcon />}
-                >
-                  Sửa
-                </Button>
-                <IconButton
-                  size="small"
-                  color="error"
-                  onClick={() => handleDeleteClick(movie)}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </CardActions>
-            </Card>
+        {moviesLoading ? (
+          renderSkeletonCards()
+        ) : filteredMovies.length > 0 ? (
+          filteredMovies.map(renderMovieCard)
+        ) : (
+          <Grid item xs={12}>
+            <Paper sx={{ p: 4, textAlign: "center" }}>
+              <MovieIcon sx={{ fontSize: 64, color: "grey.400", mb: 2 }} />
+              <Typography variant="h6" color="grey.600">
+                Không tìm thấy phim nào
+              </Typography>
+              <Typography variant="body2" color="grey.500">
+                Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc
+              </Typography>
+            </Paper>
           </Grid>
-        ))}
+        )}
       </Grid>
 
+      {/* Add/Edit Movie Dialog */}
       <Dialog
         open={openDialog}
-        onClose={() => setOpenDialog(false)}
+        onClose={() => !saveLoading && setOpenDialog(false)}
         maxWidth="md"
         fullWidth
       >
@@ -505,17 +648,20 @@ const MovieManagement = () => {
           {editingMovie ? "Chỉnh sửa phim" : "Thêm phim mới"}
           <IconButton
             onClick={() => setOpenDialog(false)}
+            disabled={saveLoading}
             sx={{ position: "absolute", right: 8, top: 8 }}
           >
             <CloseIcon />
           </IconButton>
         </DialogTitle>
+        {saveLoading && <LinearProgress />}
         <DialogContent dividers>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               <TextField
-                label="Tên phim"
+                label="Tên phim *"
                 fullWidth
+                disabled={saveLoading}
                 value={movieForm.ten_phim}
                 onChange={(e) =>
                   setMovieForm({ ...movieForm, ten_phim: e.target.value })
@@ -524,8 +670,9 @@ const MovieManagement = () => {
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
-                label="Đạo diễn"
+                label="Đạo diễn *"
                 fullWidth
+                disabled={saveLoading}
                 value={movieForm.dao_dien}
                 onChange={(e) =>
                   setMovieForm({ ...movieForm, dao_dien: e.target.value })
@@ -534,8 +681,9 @@ const MovieManagement = () => {
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
-                label="Diễn viên "
+                label="Diễn viên"
                 fullWidth
+                disabled={saveLoading}
                 value={movieForm.dien_vien}
                 onChange={(e) =>
                   setMovieForm({ ...movieForm, dien_vien: e.target.value })
@@ -544,20 +692,21 @@ const MovieManagement = () => {
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
-                label="Ngôn ngu "
+                label="Ngôn ngữ"
                 fullWidth
+                disabled={saveLoading}
                 value={movieForm.language}
                 onChange={(e) =>
                   setMovieForm({ ...movieForm, language: e.target.value })
                 }
               />
             </Grid>
-
             <Grid item xs={6}>
               <TextField
-                label="Thời lượng (phút)"
+                label="Thời lượng (phút) *"
                 fullWidth
                 type="number"
+                disabled={saveLoading}
                 value={movieForm.thoi_luong}
                 onChange={(e) =>
                   setMovieForm({
@@ -572,6 +721,7 @@ const MovieManagement = () => {
                 label="Năm phát hành"
                 fullWidth
                 type="number"
+                disabled={saveLoading}
                 value={movieForm.nam_phat_hanh}
                 onChange={(e) =>
                   setMovieForm({
@@ -586,10 +736,11 @@ const MovieManagement = () => {
                 multiple
                 options={genres}
                 value={movieForm.the_loai}
+                disabled={saveLoading || genresLoading}
                 onChange={(e, v) => setMovieForm({ ...movieForm, the_loai: v })}
                 getOptionLabel={(option) => option}
                 renderInput={(params) => (
-                  <TextField {...params} label="Thể loại" />
+                  <TextField {...params} label="Thể loại *" />
                 )}
               />
             </Grid>
@@ -597,6 +748,7 @@ const MovieManagement = () => {
               <TextField
                 label="Poster URL"
                 fullWidth
+                disabled={saveLoading}
                 value={movieForm.image}
                 onChange={(e) =>
                   setMovieForm({ ...movieForm, image: e.target.value })
@@ -607,6 +759,7 @@ const MovieManagement = () => {
               <TextField
                 label="Trailer URL"
                 fullWidth
+                disabled={saveLoading}
                 value={movieForm.trailer}
                 onChange={(e) =>
                   setMovieForm({ ...movieForm, trailer: e.target.value })
@@ -618,6 +771,7 @@ const MovieManagement = () => {
                 label="Ngày công chiếu"
                 type="date"
                 fullWidth
+                disabled={saveLoading}
                 InputLabelProps={{ shrink: true }}
                 value={movieForm.releaseDate}
                 onChange={(e) =>
@@ -633,6 +787,7 @@ const MovieManagement = () => {
                 label="Ngày kết thúc"
                 type="date"
                 fullWidth
+                disabled={saveLoading}
                 InputLabelProps={{ shrink: true }}
                 value={movieForm.endDate}
                 onChange={(e) =>
@@ -640,9 +795,8 @@ const MovieManagement = () => {
                 }
               />
             </Grid>
-            <Grid item xs={6}></Grid>
-            <Grid item xs={6}>
-              <FormControl sx={{ minWidth: 100, width: "100%", maxWidth: 150 }}>
+            <Grid item xs={6} minWidth={"100px"}>
+              <FormControl fullWidth disabled={saveLoading}>
                 <InputLabel>Độ tuổi</InputLabel>
                 <Select
                   value={movieForm.nhan_phim}
@@ -658,14 +812,13 @@ const MovieManagement = () => {
                 </Select>
               </FormControl>
             </Grid>
-
             <Grid item xs={12}>
               <TextField
-                sx={{ "& .MuiInputBase-input": { padding: "16px" } }}
                 label="Mô tả"
                 fullWidth
                 multiline
                 rows={4}
+                disabled={saveLoading}
                 value={movieForm.mo_ta}
                 onChange={(e) =>
                   setMovieForm({ ...movieForm, mo_ta: e.target.value })
@@ -675,28 +828,24 @@ const MovieManagement = () => {
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Hủy</Button>
-          <Button variant="contained" onClick={handleSaveMovie}>
-            {editingMovie ? "Cập nhật" : "Thêm"}
+          <Button onClick={() => setOpenDialog(false)} disabled={saveLoading}>
+            Hủy
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleSaveMovie}
+            disabled={saveLoading}
+            startIcon={saveLoading ? <CircularProgress size={16} /> : null}
+          >
+            {saveLoading ? "Đang lưu..." : editingMovie ? "Cập nhật" : "Thêm"}
           </Button>
         </DialogActions>
       </Dialog>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
+        onClose={() => !deleteLoading && setDeleteDialogOpen(false)}
       >
         <DialogTitle>Xác nhận xóa phim</DialogTitle>
         <DialogContent>
@@ -704,18 +853,44 @@ const MovieManagement = () => {
             Bạn có chắc muốn xóa phim <strong>{movieToDelete?.ten_phim}</strong>{" "}
             không?
           </Typography>
+          <Typography variant="body2" color="warning.main" sx={{ mt: 1 }}>
+            Hành động này không thể hoàn tác!
+          </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Hủy</Button>
+          <Button
+            onClick={() => setDeleteDialogOpen(false)}
+            disabled={deleteLoading}
+          >
+            Hủy
+          </Button>
           <Button
             color="error"
             variant="contained"
-            onClick={() => confirmDeleteMovie(movieToDelete)}
+            disabled={deleteLoading}
+            startIcon={deleteLoading ? <CircularProgress size={16} /> : null}
+            onClick={confirmDeleteMovie}
           >
-            Xóa
+            {deleteLoading ? "Đang xóa..." : "Xóa"}
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

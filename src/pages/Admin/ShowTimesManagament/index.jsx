@@ -19,6 +19,10 @@ import {
   Alert,
   MenuItem,
   Select,
+  Backdrop,
+  CircularProgress,
+  LinearProgress,
+  Skeleton,
 } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
 import axios from "../../../service/axios";
@@ -28,7 +32,6 @@ import {
   DialogContent as ConfirmContent,
   DialogActions as ConfirmActions,
 } from "@mui/material";
-import CircularProgress from "@mui/material/CircularProgress";
 
 const ShowTimesManagement = () => {
   const [showtimes, setShowtimes] = useState([]);
@@ -41,6 +44,21 @@ const ShowTimesManagement = () => {
     type: "success",
     message: "",
   });
+  const [loadingData, setLoadingData] = useState(false);
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const [loadingDelete, setLoadingDelete] = useState(false);
+  const renderSkeletonRows = () => {
+    return [...Array(4)].map((_, i) => (
+      <TableRow key={`skeleton-${i}`}>
+        {[...Array(6)].map((_, j) => (
+          <TableCell key={j}>
+            <Skeleton variant="text" />
+          </TableCell>
+        ))}
+      </TableRow>
+    ));
+  };
+
   const [filters, setFilters] = useState({
     movieId: "",
     roomId: "",
@@ -110,7 +128,7 @@ const ShowTimesManagement = () => {
   }, []);
 
   const fetchRoomData = async () => {
-    setLoading(true);
+    setLoadingData(true);
     try {
       const res = await axios.get("/api/rooms");
       console.log("Fetched rooms:", res.data);
@@ -118,11 +136,11 @@ const ShowTimesManagement = () => {
     } catch (err) {
       console.error("Error fetching rooms:", err);
     }
-    setLoading(false);
+    setLoadingData(false);
   };
 
   const fetchMovies = async () => {
-    setLoading(true);
+    setLoadingData(true);
     try {
       const res = await axios.get("/api/movies");
       console.log("Fetched movies:", res.data);
@@ -130,11 +148,11 @@ const ShowTimesManagement = () => {
     } catch (err) {
       console.error("Error fetching movies:", err);
     }
-    setLoading(false);
+    setLoadingData(false);
   };
 
   const fetchShowtimes = async () => {
-    setLoading(true);
+    setLoadingData(true);
     try {
       const res = await axios.get("/api/showtimes");
       console.log("Fetched showtimes:", res.data);
@@ -142,7 +160,7 @@ const ShowTimesManagement = () => {
     } catch (err) {
       console.error("Error fetching showtimes:", err);
     }
-    setLoading(false);
+    setLoadingData(false);
   };
 
   // Hàm lấy thông tin phim/phòng
@@ -307,7 +325,15 @@ const ShowTimesManagement = () => {
         newShowtime.date;
       if (!isSameDate) return false;
 
-      const existingDuration = getMovieDuration(showtime.movieId);
+      // ✅ SỬA LẠI: Tính đúng giờ kết thúc cho suất chiếu hiện tại
+      const existingMovieId =
+        showtime.movieId && typeof showtime.movieId === "object"
+          ? showtime.movieId._id ||
+            showtime.movieId.phim_id ||
+            showtime.movieId.movieId
+          : showtime.movieId;
+
+      const existingDuration = getMovieDuration(existingMovieId);
       const existingEnd = calculateEndTime(
         showtime.startTime,
         existingDuration
@@ -323,10 +349,11 @@ const ShowTimesManagement = () => {
       let newStartMin = toMinutes(newShowtime.startTime);
       let newEndMin = toMinutes(newShowtime.endTime);
 
-      // ❗ Nếu giờ kết thúc nhỏ hơn giờ bắt đầu, tức là qua ngày hôm sau
+      // Nếu giờ kết thúc nhỏ hơn giờ bắt đầu, tức là qua ngày hôm sau
       if (newEndMin <= newStartMin) {
         newEndMin += 24 * 60;
       }
+
       let existingStartMin = toMinutes(showtime.startTime);
       let existingEndMin = toMinutes(existingEnd);
 
@@ -334,6 +361,9 @@ const ShowTimesManagement = () => {
         existingEndMin += 24 * 60;
       }
 
+      // ✅ LOGIC ĐÚNG: Không trùng nếu:
+      // - Suất mới kết thúc (+ buffer) trước khi suất cũ bắt đầu, HOẶC
+      // - Suất mới bắt đầu sau khi suất cũ kết thúc (+ buffer)
       const hasConflict = !(
         newEndMin + buffer <= existingStartMin ||
         newStartMin >= existingEndMin + buffer
@@ -362,10 +392,21 @@ const ShowTimesManagement = () => {
     if (conflicts.length > 0) {
       const conflict = conflicts[0];
       const conflictMovie = getMovieName(conflict.movieId);
-      const time = `${conflict.startTime} - ${calculateEndTime(
-        conflict.startTime,
-        getMovieDuration(conflict.movieId)
-      )}`;
+
+      // ✅ SỬA LẠI: Tính đúng giờ kết thúc
+      const conflictMovieId =
+        conflict.movieId && typeof conflict.movieId === "object"
+          ? conflict.movieId._id ||
+            conflict.movieId.phim_id ||
+            conflict.movieId.movieId
+          : conflict.movieId;
+
+      const conflictEndTime = calculateEndTime(
+        conflict.startTime, // ← ĐÚNG: Dùng startTime
+        getMovieDuration(conflictMovieId)
+      );
+
+      const time = `${conflict.startTime} - ${conflictEndTime}`;
       errors.push(
         `Trùng lịch với phim "${conflictMovie}" (${time}). Vui lòng cách nhau ít nhất 15 phút.`
       );
@@ -380,7 +421,7 @@ const ShowTimesManagement = () => {
 
   // Thêm/sửa suất chiếu
   const handleSubmit = async () => {
-    setLoading(true);
+    setLoadingSubmit(true);
 
     // Tìm phim & phòng
     const movieObj = movie.find(
@@ -402,7 +443,7 @@ const ShowTimesManagement = () => {
         type: "error",
         message: "Không tìm thấy thông tin phim hoặc phòng chiếu",
       });
-      setLoading(false);
+      setLoadingSubmit(false);
       return;
     }
 
@@ -426,7 +467,7 @@ const ShowTimesManagement = () => {
         type: "error",
         message: validation.errors.join(". "),
       });
-      setLoading(false);
+      setLoadingSubmit(false);
       return;
     }
 
@@ -454,12 +495,16 @@ const ShowTimesManagement = () => {
           message: "Cập nhật suất chiếu thành công",
         });
       } else {
-        await axios.post("/api/showtimes", newShowtime);
-        setAlert({
-          open: true,
-          type: "success",
-          message: "Thêm suất chiếu thành công",
-        });
+        try {
+          await axios.post("/api/showtimes", newShowtime);
+          setAlert({
+            open: true,
+            type: "success",
+            message: "Thêm suất chiếu thành công",
+          });
+        } catch (err) {
+          console.log(err);
+        }
       }
 
       fetchShowtimes();
@@ -472,12 +517,13 @@ const ShowTimesManagement = () => {
       });
     }
 
-    setLoading(false);
+    setLoadingSubmit(false);
+    setTimeout(() => setOpenDialog(false), 300);
   };
 
   // Xóa suất chiếu
   const handleDelete = async (index) => {
-    setLoading(true);
+    setLoadingDelete(true);
     const suatId = showtimes[index].suat_chieu_id;
     try {
       await axios.delete(`/api/showtimes/${suatId}`);
@@ -494,7 +540,7 @@ const ShowTimesManagement = () => {
         message: "Lỗi khi xóa suất chiếu.",
       });
     }
-    setLoading(false);
+    setLoadingDelete(false);
     setDeleteIndex(null);
   };
 
@@ -546,9 +592,18 @@ const ShowTimesManagement = () => {
     }
     return `${dd}/${mm}/${yyyy}`;
   };
+  useEffect(() => {
+    if (!openDialog) {
+      setForm({ movieId: "", roomId: "", date: "", startTime: "" });
+      setEditIndex(null);
+    }
+  }, [openDialog]);
 
   return (
     <Box p={4} sx={{ position: "relative" }}>
+      <Backdrop open={loadingData} sx={{ zIndex: 1300 }}>
+        <CircularProgress color="primary" />
+      </Backdrop>
       {loading && (
         <Box
           sx={{
@@ -639,54 +694,66 @@ const ShowTimesManagement = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {filteredShowtimes.map((row, index) => (
-            <TableRow key={row.suat_chieu_id || index}>
-              <TableCell>{getMovieName(row.movieId)}</TableCell>
-              <TableCell>{getRoomName(row.roomId)}</TableCell>
-              <TableCell>{formatDateVN(row.date)}</TableCell>
-              <TableCell>{row.startTime}</TableCell>
-              <TableCell>{row.endTime}</TableCell>
-              <TableCell>
-                <IconButton
-                  color="primary"
-                  onClick={() => handleOpenDialog(index)}
-                >
-                  <Edit />
-                </IconButton>
-                <IconButton color="error" onClick={() => setDeleteIndex(index)}>
-                  <Delete />
-                </IconButton>
-                <ConfirmDialog
-                  open={deleteIndex === index}
-                  onClose={() => setDeleteIndex(null)}
-                >
-                  <ConfirmTitle>Xác nhận xoá suất chiếu</ConfirmTitle>
-                  <ConfirmContent>
-                    <Typography>
-                      Bạn có chắc chắn muốn xoá suất chiếu này không? Chỉ cho
-                      phép xoá nếu chưa bán vé.
-                    </Typography>
-                  </ConfirmContent>
-                  <ConfirmActions>
-                    <Button onClick={() => setDeleteIndex(null)}>Hủy</Button>
-                    <Button
-                      variant="contained"
-                      color="error"
-                      onClick={() => handleDelete(index)}
+          {loadingData
+            ? renderSkeletonRows()
+            : filteredShowtimes.map((row, index) => (
+                <TableRow key={row.suat_chieu_id || index}>
+                  <TableCell>{getMovieName(row.movieId)}</TableCell>
+                  <TableCell>{getRoomName(row.roomId)}</TableCell>
+                  <TableCell>{formatDateVN(row.date)}</TableCell>
+                  <TableCell>{row.startTime}</TableCell>
+                  <TableCell>{row.endTime}</TableCell>
+                  <TableCell>
+                    <IconButton
+                      color="primary"
+                      onClick={() => handleOpenDialog(index)}
                     >
-                      Xác nhận xoá
-                    </Button>
-                  </ConfirmActions>
-                </ConfirmDialog>
-              </TableCell>
-            </TableRow>
-          ))}
+                      <Edit />
+                    </IconButton>
+                    <IconButton
+                      color="error"
+                      onClick={() => setDeleteIndex(index)}
+                    >
+                      <Delete />
+                    </IconButton>
+                    <ConfirmDialog
+                      open={deleteIndex === index}
+                      onClose={() => setDeleteIndex(null)}
+                    >
+                      <ConfirmTitle>Xác nhận xoá suất chiếu</ConfirmTitle>
+                      <ConfirmContent>
+                        <Typography>
+                          Bạn có chắc chắn muốn xoá suất chiếu này không? Chỉ
+                          cho phép xoá nếu chưa bán vé.
+                        </Typography>
+                      </ConfirmContent>
+                      <ConfirmActions>
+                        <Button onClick={() => setDeleteIndex(null)}>
+                          Hủy
+                        </Button>
+                        <Button
+                          variant="contained"
+                          color="error"
+                          onClick={() => handleDelete(index)}
+                          disabled={loadingDelete}
+                          startIcon={
+                            loadingDelete && <CircularProgress size={16} />
+                          }
+                        >
+                          {loadingDelete ? "Đang xoá..." : "Xác nhận xoá"}
+                        </Button>
+                      </ConfirmActions>
+                    </ConfirmDialog>
+                  </TableCell>
+                </TableRow>
+              ))}
         </TableBody>
       </Table>
 
       {/* FORM */}
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogTitle>
+          {loadingSubmit && <LinearProgress />}
           {editIndex !== null ? "Chỉnh sửa suất chiếu" : "Thêm suất chiếu"}
         </DialogTitle>
         <DialogContent>
@@ -700,14 +767,20 @@ const ShowTimesManagement = () => {
                 onChange={handleChange}
                 sx={{ minWidth: 100, width: "100%", maxWidth: 150 }}
               >
-                {movie.map((p) => (
-                  <MenuItem
-                    key={p.phim_id || p.movieId || p._id}
-                    value={p.phim_id || p.movieId || p._id}
-                  >
-                    {p.title || p.ten_phim}
-                  </MenuItem>
-                ))}
+                {movie.length === 0 && loading
+                  ? [...Array(3)].map((_, i) => (
+                      <MenuItem key={`skeleton-movie-${i}`} disabled>
+                        <Skeleton width={100} />
+                      </MenuItem>
+                    ))
+                  : movie.map((p) => (
+                      <MenuItem
+                        key={p.phim_id || p.movieId || p._id}
+                        value={p.phim_id || p.movieId || p._id}
+                      >
+                        {p.title || p.ten_phim}
+                      </MenuItem>
+                    ))}
               </TextField>
             </Grid>
             <Grid item xs={6}>
@@ -748,8 +821,13 @@ const ShowTimesManagement = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Hủy</Button>
-          <Button variant="contained" onClick={handleSubmit}>
-            Lưu
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            disabled={loadingSubmit}
+            startIcon={loadingSubmit && <CircularProgress size={16} />}
+          >
+            {loadingSubmit ? "Đang lưu..." : "Lưu"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -758,8 +836,15 @@ const ShowTimesManagement = () => {
         open={alert.open}
         autoHideDuration={4000}
         onClose={() => setAlert({ ...alert, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
-        <Alert severity={alert.type}>{alert.message}</Alert>
+        <Alert
+          severity={alert.type}
+          variant="filled"
+          onClose={() => setAlert({ ...alert, open: false })}
+        >
+          {alert.message}
+        </Alert>
       </Snackbar>
     </Box>
   );
