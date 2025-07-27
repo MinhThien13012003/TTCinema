@@ -79,8 +79,8 @@ const AccountProfile = () => {
                       size="small"
                       sx={{
                         "& .MuiOutlinedInput-root": {
-                          "&:hover fieldset": { borderColor: "#7c3aed" },
-                          "&.Mui-focused fieldset": { borderColor: "#7c3aed" },
+                          "&:hover fieldset": { borderColor: "#4A5FD9" },
+                          "&.Mui-focused fieldset": { borderColor: "#4A5FD9" },
                         },
                       }}
                     />
@@ -88,7 +88,7 @@ const AccountProfile = () => {
                 ))}
               </Grid>
               <Button
-                variant="contained"
+                variant="movie"
                 sx={{
                   fontWeight: "bold",
                   bgcolor: "#333",
@@ -96,7 +96,6 @@ const AccountProfile = () => {
                   px: 3,
                   py: 1,
                   borderRadius: 1,
-                  "&:hover": { bgcolor: "#000" },
                 }}
               >
                 LƯU THÔNG TIN
@@ -131,9 +130,9 @@ const AccountProfile = () => {
                         size="small"
                         sx={{
                           "& .MuiOutlinedInput-root": {
-                            "&:hover fieldset": { borderColor: "#7c3aed" },
+                            "&:hover fieldset": { borderColor: "#4A5FD9" },
                             "&.Mui-focused fieldset": {
-                              borderColor: "#7c3aed",
+                              borderColor: "#4A5FD9",
                             },
                           },
                         }}
@@ -143,16 +142,15 @@ const AccountProfile = () => {
                 )}
               </Grid>
               <Button
-                variant="contained"
+                variant="movie"
                 sx={{
                   mt: 3,
                   fontWeight: "bold",
-                  bgcolor: "#7c3aed",
+                  bgcolor: "#4A5FD9",
                   color: "white",
                   px: 3,
                   py: 1,
                   borderRadius: 1,
-                  "&:hover": { bgcolor: "#5b21b6" },
                 }}
               >
                 ĐỔI MẬT KHẨU
@@ -202,7 +200,7 @@ const AccountProfile = () => {
             width: sidebarWidth,
             flexShrink: 0,
             mr: 3,
-            background: "linear-gradient(180deg, #7c3aed 0%, #5b21b6 100%)",
+            background: "#4A5FD9",
             color: "white",
             minHeight: "calc(100vh - 64px)",
             overflowY: "auto",

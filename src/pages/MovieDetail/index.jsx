@@ -17,7 +17,7 @@ import {
   Subtitles,
   CalendarToday,
 } from "@mui/icons-material";
-import movieData from "../../utils/movieData";
+//import movieData from "../../utils/movieData";
 import ButtonGroupTrailerBooking from "../../components/ButtonGroupTrailerBooking";
 import ShowTime from "../ShowTime";
 import axios from "../../service/axios";
@@ -30,7 +30,7 @@ const MovieDetail = () => {
   const fetchMovieData = async () => {
     try {
       const response = await axios.get(`/api/movies/${id}`);
-      console.log("Movie data fetched successfully:", response.data);
+      //console.log("Movie data fetched successfully:", response.data);
       setMovie(response.data);
     } catch (error) {
       console.error("Error fetching movie data:", error);
@@ -167,15 +167,16 @@ const MovieDetail = () => {
               <Chip
                 label={
                   movie.label
-                    ? `T${movie.label.replace(/\D/g, "")}: Phim từ ${movie.label.replace(
+                    ? `T${movie.label.replace(
                         /\D/g,
                         ""
-                      )}+`
+                      )}: Phim từ ${movie.label.replace(/\D/g, "")}+`
                     : "Không rõ độ tuổi"
                 }
                 sx={{
                   mb: 3,
-                  background: "linear-gradient(135deg, #FFB800 0%, #FF8C00 100%)",
+                  background:
+                    "linear-gradient(135deg, #FFB800 0%, #FF8C00 100%)",
                 }}
               />
 

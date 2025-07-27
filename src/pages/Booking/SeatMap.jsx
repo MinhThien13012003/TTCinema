@@ -30,7 +30,11 @@ const SeatMap = ({
                 seat ? (
                   <Box
                     key={seat.seatNumber}
-                    onClick={() => handleSelectSeat(seat.seatNumber)}
+                    onClick={() => {
+                      if (getSeatStatus(seat.seatNumber) !== "booked") {
+                        handleSelectSeat(seat.seatNumber);
+                      }
+                    }}
                     sx={{
                       width: 35,
                       height: 35,

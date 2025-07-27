@@ -18,6 +18,7 @@ const PATH = {
     MOVIES: "/admin/movies",
     SEATPRICE: "/admin/seatprice",
     SHOWTIMES: "/admin/showtimes",
+    USER: "/admin/user",
   },
 };
 

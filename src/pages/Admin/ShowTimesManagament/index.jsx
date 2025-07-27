@@ -23,6 +23,7 @@ import {
   CircularProgress,
   LinearProgress,
   Skeleton,
+  TablePagination,
 } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
 import axios from "../../../service/axios";
@@ -32,12 +33,16 @@ import {
   DialogContent as ConfirmContent,
   DialogActions as ConfirmActions,
 } from "@mui/material";
+import AutoSchedulerDialog from "./AutoSchedulerDialog";
 
 const ShowTimesManagement = () => {
   const [showtimes, setShowtimes] = useState([]);
   const [movie, setMovie] = useState([]);
   const [roomData, setRoomData] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
+  const [openAutoDialog, setOpenAutoDialog] = useState(false);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [editIndex, setEditIndex] = useState(null);
   const [alert, setAlert] = useState({
     open: false,
@@ -325,7 +330,6 @@ const ShowTimesManagement = () => {
         newShowtime.date;
       if (!isSameDate) return false;
 
-      // ✅ SỬA LẠI: Tính đúng giờ kết thúc cho suất chiếu hiện tại
       const existingMovieId =
         showtime.movieId && typeof showtime.movieId === "object"
           ? showtime.movieId._id ||
@@ -386,14 +390,12 @@ const ShowTimesManagement = () => {
     const timeError = validateTime(formData.startTime, formData.endTime);
     if (timeError) errors.push(timeError);
 
-    // ✅ Gọi kiểm tra trùng lịch
     const conflicts = checkScheduleConflict(formData, excludeIndex);
 
     if (conflicts.length > 0) {
       const conflict = conflicts[0];
       const conflictMovie = getMovieName(conflict.movieId);
 
-      // ✅ SỬA LẠI: Tính đúng giờ kết thúc
       const conflictMovieId =
         conflict.movieId && typeof conflict.movieId === "object"
           ? conflict.movieId._id ||
@@ -545,6 +547,8 @@ const ShowTimesManagement = () => {
   };
 
   // Lọc bảng
+  const todayStr = new Date().toISOString().split("T")[0]; // ví dụ: '2025-07-24'
+
   const filteredShowtimes = useMemo(() => {
     return showtimes.filter((s) => {
       let movieIdRaw = "";
@@ -569,12 +573,17 @@ const ShowTimesManagement = () => {
       }
       const roomId = roomIdMap[roomIdRaw] || roomIdRaw;
 
+      // ➕ Lọc ngày: chỉ hiện từ hôm nay trở đi
+      const showDate = s.date
+        ? new Date(s.date).toISOString().split("T")[0]
+        : "";
+      const isTodayOrFuture = showDate >= todayStr;
+
       return (
+        isTodayOrFuture &&
         (!filters.movieId || movieId == filters.movieId) &&
         (!filters.roomId || roomId == filters.roomId) &&
-        (!filters.date ||
-          (s.date &&
-            new Date(s.date).toISOString().split("T")[0] === filters.date))
+        (!filters.date || showDate === filters.date)
       );
     });
   }, [showtimes, filters, movieIdMap, roomIdMap]);
@@ -622,7 +631,7 @@ const ShowTimesManagement = () => {
           <CircularProgress color="primary" />
         </Box>
       )}
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" fontWeight={700} color="primary" gutterBottom>
         Quản lý lịch chiếu
       </Typography>
 
@@ -674,6 +683,14 @@ const ShowTimesManagement = () => {
       </Grid>
 
       <Button
+        variant="outlined"
+        color="primary"
+        sx={{ ml: 2, mr: 1 }}
+        onClick={() => setOpenAutoDialog(true)}
+      >
+        Lập lịch tự động
+      </Button>
+      <Button
         variant="contained"
         color="primary"
         onClick={() => handleOpenDialog()}
@@ -696,59 +713,73 @@ const ShowTimesManagement = () => {
         <TableBody>
           {loadingData
             ? renderSkeletonRows()
-            : filteredShowtimes.map((row, index) => (
-                <TableRow key={row.suat_chieu_id || index}>
-                  <TableCell>{getMovieName(row.movieId)}</TableCell>
-                  <TableCell>{getRoomName(row.roomId)}</TableCell>
-                  <TableCell>{formatDateVN(row.date)}</TableCell>
-                  <TableCell>{row.startTime}</TableCell>
-                  <TableCell>{row.endTime}</TableCell>
-                  <TableCell>
-                    <IconButton
-                      color="primary"
-                      onClick={() => handleOpenDialog(index)}
-                    >
-                      <Edit />
-                    </IconButton>
-                    <IconButton
-                      color="error"
-                      onClick={() => setDeleteIndex(index)}
-                    >
-                      <Delete />
-                    </IconButton>
-                    <ConfirmDialog
-                      open={deleteIndex === index}
-                      onClose={() => setDeleteIndex(null)}
-                    >
-                      <ConfirmTitle>Xác nhận xoá suất chiếu</ConfirmTitle>
-                      <ConfirmContent>
-                        <Typography>
-                          Bạn có chắc chắn muốn xoá suất chiếu này không? Chỉ
-                          cho phép xoá nếu chưa bán vé.
-                        </Typography>
-                      </ConfirmContent>
-                      <ConfirmActions>
-                        <Button onClick={() => setDeleteIndex(null)}>
-                          Hủy
-                        </Button>
-                        <Button
-                          variant="contained"
-                          color="error"
-                          onClick={() => handleDelete(index)}
-                          disabled={loadingDelete}
-                          startIcon={
-                            loadingDelete && <CircularProgress size={16} />
-                          }
-                        >
-                          {loadingDelete ? "Đang xoá..." : "Xác nhận xoá"}
-                        </Button>
-                      </ConfirmActions>
-                    </ConfirmDialog>
-                  </TableCell>
-                </TableRow>
-              ))}
+            : filteredShowtimes
+                ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((row, index) => (
+                  <TableRow key={row.suat_chieu_id || index}>
+                    <TableCell>{getMovieName(row.movieId)}</TableCell>
+                    <TableCell>{getRoomName(row.roomId)}</TableCell>
+                    <TableCell>{formatDateVN(row.date)}</TableCell>
+                    <TableCell>{row.startTime}</TableCell>
+                    <TableCell>{row.endTime}</TableCell>
+                    <TableCell>
+                      <IconButton
+                        color="primary"
+                        onClick={() => handleOpenDialog(index)}
+                      >
+                        <Edit />
+                      </IconButton>
+                      <IconButton
+                        color="error"
+                        onClick={() => setDeleteIndex(index)}
+                      >
+                        <Delete />
+                      </IconButton>
+                      <ConfirmDialog
+                        open={deleteIndex === index}
+                        onClose={() => setDeleteIndex(null)}
+                      >
+                        <ConfirmTitle>Xác nhận xoá suất chiếu</ConfirmTitle>
+                        <ConfirmContent>
+                          <Typography>
+                            Bạn có chắc chắn muốn xoá suất chiếu này không? Chỉ
+                            cho phép xoá nếu chưa bán vé.
+                          </Typography>
+                        </ConfirmContent>
+                        <ConfirmActions>
+                          <Button onClick={() => setDeleteIndex(null)}>
+                            Hủy
+                          </Button>
+                          <Button
+                            variant="contained"
+                            color="error"
+                            onClick={() => handleDelete(index)}
+                            disabled={loadingDelete}
+                            startIcon={
+                              loadingDelete && <CircularProgress size={16} />
+                            }
+                          >
+                            {loadingDelete ? "Đang xoá..." : "Xác nhận xoá"}
+                          </Button>
+                        </ConfirmActions>
+                      </ConfirmDialog>
+                    </TableCell>
+                  </TableRow>
+                ))}
         </TableBody>
       </Table>
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 20]}
+        component="div"
+        count={filteredShowtimes.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={(event, newPage) => setPage(newPage)}
+        onRowsPerPageChange={(event) => {
+          setRowsPerPage(parseInt(event.target.value, 10));
+          setPage(0);
+        }}
+      />
 
       {/* FORM */}
       <Dialog open={openDialog} onClose={handleCloseDialog}>
@@ -846,6 +877,22 @@ const ShowTimesManagement = () => {
           {alert.message}
         </Alert>
       </Snackbar>
+      <AutoSchedulerDialog
+        open={openAutoDialog}
+        onClose={() => setOpenAutoDialog(false)}
+        movieList={movie}
+        roomList={roomData}
+        onSuccess={() => {
+          fetchShowtimes();
+          setAlert({
+            open: true,
+            type: "success",
+            message: "Tự động sinh lịch thành công",
+          });
+          setTimeout(() => setOpenAutoDialog(false), 500);
+        }}
+        setAlert={setAlert}
+      />
     </Box>
   );
 };

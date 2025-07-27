@@ -23,6 +23,7 @@ import SeatPriceManagement from "./pages/Admin/SeatPriceManagement";
 import ShowTimesManagement from "./pages/Admin/ShowTimesManagament";
 import AdminRoute from "./route/AdminRoute";
 import BookingConfirm from "./pages/BookingConfirm";
+import UserManagement from "./pages/Admin/UserManagement";
 
 function App() {
   return (
@@ -59,6 +60,7 @@ function App() {
             path={PATH.ADMIN.SHOWTIMES}
             element={<ShowTimesManagement />}
           />
+          <Route path={PATH.ADMIN.USER} element={<UserManagement />} />
         </Route>
       </Routes>
     </BrowserRouter>

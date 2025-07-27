@@ -33,6 +33,11 @@ const Sidebar = () => {
       icon: <EventSeatIcon />,
       path: "/admin/seatprice",
     },
+    {
+      text: "Quản lý nguời dùng",
+      icon: <PeopleIcon />,
+      path: "/admin/user",
+    },
   ];
 
   return (

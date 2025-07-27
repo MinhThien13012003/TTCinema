@@ -68,7 +68,7 @@ const SeatManager = () => {
         <CircularProgress color="inherit" />
       </Backdrop>
 
-      <Typography variant="h4" fontWeight="bold" gutterBottom color="primary">
+      <Typography variant="h4" fontWeight={700} gutterBottom color="primary">
         Quản lý Ghế và Loại Ghế
       </Typography>
       {loading && (

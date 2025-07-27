@@ -41,7 +41,7 @@ const Booking = () => {
   const suatId = parseInt(id);
   const { state } = useLocation();
   const navigate = useNavigate();
-
+  const [bookedSeats, setBookedSeats] = useState([]);
   const [showtime, setShowtime] = useState(state?.suatChieu || null);
   const [movie, setMovie] = useState(state?.movie || null);
   const [room, setRoom] = useState(state?.room || null);
@@ -62,7 +62,7 @@ const Booking = () => {
       try {
         setLoading(true);
         const res = await axios.get("/api/seats");
-
+        // console.log("Raw seats data từ API:", res.data);
         const filteredSeats = res.data
           .filter(
             (seat) =>
@@ -77,6 +77,7 @@ const Booking = () => {
                 ? seat.seatTypeId
                 : { name: "Không xác định", price: 0 };
             return {
+              _id: seat._id,
               ghe_id: seat.ghe_id,
               so_ghe: seat.seatNumber,
               hang: seat.row,
@@ -96,14 +97,28 @@ const Booking = () => {
           if (!seatTypeMap.has(key)) {
             seatTypeMap.set(key, {
               label: seat.seatType,
-              color: seat.color || seatColors[seat.seatType]?.default || "#888", // ✅ dùng color từ seat
+              color: seat.color || seatColors[seat.seatType]?.default || "#888",
             });
           }
         });
+        // console.log("Danh sách ghế có thể dùng:", filteredSeats);
+        // filteredSeats.forEach((seat) => {
+        //   console.log({
+        //     seatId: seat._id || seat.ghe_id, // nếu có cả 2 thì ưu tiên _id của MongoDB
+        //     seatNumber: seat.seatNumber,
+        //     roomId: seat.roomId,
+        //     price: seat.price,
+        //   });
+        // });
         const uniqueSeatTypes = Array.from(seatTypeMap.values());
         setSeatTypes(uniqueSeatTypes);
 
         setShowtime(state.suatChieu);
+        //console.log("Showtime hiện tại:", state.suatChieu);
+        // //console.log(
+        //   "Showtime ID dùng cho API:",
+        //   state.suatChieu._id || state.suatChieu.suat_chieu_id
+        // );
         setMovie(state.movie);
         setRoom(state.room);
         setSeats(filteredSeats);
@@ -114,22 +129,74 @@ const Booking = () => {
         setLoading(false);
       }
     };
+    const fetchTickets = async () => {
+      try {
+        const res = await axios.get("/api/tickets");
+        const tickets = res.data;
+
+        const booked = tickets
+          .filter(
+            (ticket) =>
+              (ticket?.showtimeId?._id === showtime._id ||
+                ticket?.showtimeId?.suat_chieu_id === showtime.suat_chieu_id) &&
+              ticket?.status === "paid"
+          )
+          .map((ticket) => normalizeSeatNumber(ticket.seatId?.seatNumber));
+
+        setBookedSeats(booked);
+        console.log("Ghế đã thanh toán:", booked);
+      } catch (err) {
+        console.error("Lỗi khi tải vé:", err);
+      }
+    };
+
+    fetchTickets();
 
     fetchSeats();
   }, [state, navigate]);
   const getSeatColor = (seat) => {
     const type = seat.seatType;
-    const selected = selectedSeats.includes(seat.seatNumber);
+    const normalized = normalizeSeatNumber(seat.seatNumber);
+
+    if (bookedSeats.includes(normalized)) {
+      return "#9E9E9E"; // Màu xám cho ghế đã đặt
+    }
+
+    const selected = selectedSeats.includes(normalized);
     return selected
       ? seatColors[type]?.selected || "#4CAF50"
       : seat.color || seatColors[type]?.default || "#888";
   };
+  // const handleSelectSeat = (seatNumber) => {
+  //   setSelectedSeats((prev) =>
+  //     prev.includes(seatNumber)
+  //       ? prev.filter((s) => s !== seatNumber)
+  //       : [...prev, seatNumber]
+  //   );
+  // };
   const handleSelectSeat = (seatNumber) => {
-    setSelectedSeats((prev) =>
-      prev.includes(seatNumber)
+    setSelectedSeats((prev) => {
+      const updated = prev.includes(seatNumber)
         ? prev.filter((s) => s !== seatNumber)
-        : [...prev, seatNumber]
-    );
+        : [...prev, seatNumber];
+
+      // Lấy ra thông tin của ghế vừa được chọn
+      const seat = seats.find(
+        (s) => s.seatNumber === normalizeSeatNumber(seatNumber)
+      );
+
+      if (seat && showtime) {
+        const mockTicket = {
+          ve_id: Math.floor(Math.random() * 1000000000), // hoặc tự điền số bất kỳ
+          showtimeId: showtime._id || showtime.suat_chieu_id,
+          seatId: seat?._id,
+          price: seat.price,
+        };
+        console.log("Mẫu dữ liệu tạo vé:", mockTicket);
+      }
+
+      return updated;
+    });
   };
 
   const total = selectedSeats.reduce((sum, seatNumber) => {
@@ -201,9 +268,12 @@ const Booking = () => {
             groupedSeats={groupedSeats}
             handleSelectSeat={handleSelectSeat}
             getSeatColor={(seat) => getSeatColor(seat, selectedSeats)}
-            getSeatStatus={(seatNumber) =>
-              selectedSeats.includes(seatNumber) ? "selected" : "available"
-            }
+            getSeatStatus={(seatNumber) => {
+              const normalized = normalizeSeatNumber(seatNumber);
+              if (bookedSeats.includes(normalized)) return "booked";
+              if (selectedSeats.includes(normalized)) return "selected";
+              return "available";
+            }}
           />
 
           <SeatLegend seatTypes={seatTypes} />

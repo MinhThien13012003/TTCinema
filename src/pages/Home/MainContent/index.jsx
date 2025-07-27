@@ -11,6 +11,7 @@ import promotionData from "../../../utils/promotionData";
 import SliderSection from "./SliderSection";
 import axios from "../../../service/axios";
 import { useEffect, useState, useMemo } from "react";
+import { useSearch } from "../../../contexts/SearchContext";
 
 // Cấu hình múi giờ
 dayjs.extend(utc);
@@ -19,7 +20,7 @@ dayjs.tz.setDefault("Asia/Ho_Chi_Minh");
 
 const MainContent = () => {
   const [movieApi, setMovieApi] = useState([]);
-
+  const { keyword } = useSearch();
   const fetchMovies = async () => {
     try {
       const res = await axios.get("/api/movies");

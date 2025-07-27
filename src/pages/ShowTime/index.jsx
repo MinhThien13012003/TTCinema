@@ -25,7 +25,6 @@ const ShowTime = ({ movieId }) => {
   const [moviesData, setMoviesData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch API
   useEffect(() => {
     const fetchShowTimes = async () => {
       setLoading(true);
@@ -66,9 +65,8 @@ const ShowTime = ({ movieId }) => {
     fetchShowTimes();
     fetchRooms();
     fetchMovies();
-  }, []); // Chỉ chạy một lần khi mount
+  }, []);
 
-  // Tạo ánh xạ từ _id sang phim_id
   const movieIdMap = useMemo(() => {
     return Object.fromEntries(
       moviesData.map((p) => [p._id, p.phim_id || p.movieId || p._id])
@@ -100,9 +98,9 @@ const ShowTime = ({ movieId }) => {
     return phong?.name || phong?.ten_phong || `Phòng ${validRoomId}`;
   };
 
-  // Lọc suất chiếu theo movieId
+  // Lọc suất chiếu
   const filteredSuatChieu = useMemo(() => {
-    console.log("movieId truyền vào:", movieId);
+    //console.log("movieid truyền vào:", movieId);
     return showTimesData.filter((suat) => {
       const movieIdRaw =
         typeof suat.movieId === "object"
@@ -116,7 +114,6 @@ const ShowTime = ({ movieId }) => {
     });
   }, [showTimesData, movieId, movieIdMap]);
 
-  // Nhóm suất chiếu theo ngày, sau đó theo phòng
   const suatChieuTheoNgayVaPhong = useMemo(() => {
     return filteredSuatChieu.reduce((acc, suat) => {
       const ngay = suat.date;
@@ -138,7 +135,6 @@ const ShowTime = ({ movieId }) => {
   }, [filteredSuatChieu, roomIdMap]);
 
   const handleBooking = (suatChieu) => {
-    // Tìm thông tin phim
     const movie = moviesData.find((m) => {
       const movieIdRaw =
         typeof suatChieu.movieId === "object"
@@ -151,7 +147,6 @@ const ShowTime = ({ movieId }) => {
       return String(validMovieId) === String(movieId);
     });
 
-    // Tìm thông tin phòng
     const room = roomsData.find((r) => {
       const roomIdRaw =
         typeof suatChieu.roomId === "object"

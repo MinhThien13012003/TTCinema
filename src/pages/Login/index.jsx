@@ -55,7 +55,7 @@ function LoginForm({ onSuccess, onSwitchToRegister }) {
 
     try {
       const { user, token } = await login(formData.email, formData.password);
-      console.log("Đăng nhập thành công:", user);
+      //console.log("Đăng nhập thành công:", user);
 
       if (onSuccess) onSuccess({ role: user.role, user, token });
 

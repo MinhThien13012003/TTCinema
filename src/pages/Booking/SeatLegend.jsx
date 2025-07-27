@@ -3,7 +3,14 @@ import React from "react";
 import { Box, Typography } from "@mui/material";
 
 const SeatLegend = ({ seatTypes = [] }) => {
-  const legends = [...seatTypes, { label: "Đang chọn", color: "#4CAF50" }];
+  const legends = [
+    ...seatTypes,
+    { label: "Đang chọn", color: "#4CAF50" },
+    {
+      label: "Đã đặt",
+      color: "#9E9E9E",
+    },
+  ];
 
   return (
     <Box

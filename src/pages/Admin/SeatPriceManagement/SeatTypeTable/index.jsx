@@ -17,13 +17,14 @@ import {
   Alert,
   Backdrop,
   CircularProgress,
+  Skeleton,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "../../../../service/axios";
 
-const SeatTypeTable = ({ seatTypes, onRefresh }) => {
+const SeatTypeTable = ({ seatTypes, onRefresh, loading }) => {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     loai_ghe_id: Math.floor(Math.random() * 1000),
@@ -122,36 +123,49 @@ const SeatTypeTable = ({ seatTypes, onRefresh }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {seatTypes.map((type) => (
-            <TableRow key={type.loai_ghe_id}>
-              <TableCell>{type.name}</TableCell>
-              <TableCell>
-                <div
-                  style={{
-                    width: 30,
-                    height: 30,
-                    backgroundColor: type.color || "#ccc",
-                    borderRadius: 4,
-                    border: "1px solid #999",
-                  }}
-                />
-              </TableCell>
-              <TableCell>
-                {Number(type.price).toLocaleString("vi-VN")}₫
-              </TableCell>
-              <TableCell>
-                <IconButton color="primary" onClick={() => handleOpen(type)}>
-                  <EditIcon />
-                </IconButton>
-                <IconButton
-                  color="error"
-                  onClick={() => handleDeleteClick(type.loai_ghe_id)}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </TableCell>
-            </TableRow>
-          ))}
+          {loading
+            ? [...Array(4)].map((_, i) => (
+                <TableRow key={`skeleton-type-${i}`}>
+                  {[...Array(4)].map((_, j) => (
+                    <TableCell key={j}>
+                      <Skeleton variant="text" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            : seatTypes.map((type) => (
+                <TableRow key={type.loai_ghe_id}>
+                  <TableCell>{type.name}</TableCell>
+                  <TableCell>
+                    <div
+                      style={{
+                        width: 30,
+                        height: 30,
+                        backgroundColor: type.color || "#ccc",
+                        borderRadius: 4,
+                        border: "1px solid #999",
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    {Number(type.price).toLocaleString("vi-VN")}₫
+                  </TableCell>
+                  <TableCell>
+                    <IconButton
+                      color="primary"
+                      onClick={() => handleOpen(type)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      color="error"
+                      onClick={() => handleDeleteClick(type.loai_ghe_id)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
         </TableBody>
       </Table>
 

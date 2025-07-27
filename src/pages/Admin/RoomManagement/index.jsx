@@ -278,7 +278,7 @@ const RoomManagement = ({ seatTypes }) => {
       showSnackBar("Xóa thất bại", "error");
     } finally {
       setDeleteRoomDialogOpen(false);
-      setRoomDialogOpen(false); // Đóng form sửa nếu đang mở
+      setRoomDialogOpen(false);
       setRoomToDelete(null);
       setLoading(false);
     }
@@ -341,7 +341,7 @@ const RoomManagement = ({ seatTypes }) => {
           <Box mt={2} sx={{ display: "flex", flexDirection: "column" }}>
             <Typography
               variant="h4"
-              fontWeight="bold"
+              fontWeight={700}
               gutterBottom
               color="primary"
             >

@@ -70,7 +70,6 @@ const MovieManagement = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [movieToDelete, setMovieToDelete] = useState(null);
 
-  // Loading states
   const [loading, setLoading] = useState(false);
   const [moviesLoading, setMoviesLoading] = useState(true);
   const [genresLoading, setGenresLoading] = useState(false);
@@ -113,15 +112,13 @@ const MovieManagement = () => {
     language: "",
   });
 
-  // Fetch showtimes to check movie dependencies
   const fetchShowtimes = async () => {
     try {
       const response = await axios.get("/api/showtimes");
-      console.log(response.data);
+      //console.log(response.data);
       setShowtimes(response.data);
     } catch (error) {
-      console.error("Lỗi khi lấy lịch chiếu:", error);
-      // Fallback to static data if API fails
+      //console.error("Lỗi khi lấy lịch chiếu:", error);
       setShowtimes(showtimesData);
     }
   };
@@ -130,7 +127,7 @@ const MovieManagement = () => {
     if (showLoading) setMoviesLoading(true);
     try {
       const response = await axios.get("/api/movies");
-      console.log("API Response:", response.data);
+      //console.log("API Response:", response.data);
       const today = new Date();
 
       const formatted = response.data.map((movie) => {
@@ -191,7 +188,6 @@ const MovieManagement = () => {
     }
   };
 
-  // Initial data fetch
   useEffect(() => {
     const initData = async () => {
       setLoading(true);
@@ -204,17 +200,15 @@ const MovieManagement = () => {
     initData();
   }, []);
 
-  // Auto refresh every 30 seconds for real-time updates
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchMovies(false); // Refresh without showing loading
+      fetchMovies(false);
       fetchShowtimes();
     }, 30000);
 
     return () => clearInterval(interval);
   }, []);
 
-  // Filter movies based on search and tab
   useEffect(() => {
     let filtered = [...movies];
     if (filterGenre)
@@ -346,7 +340,6 @@ const MovieManagement = () => {
         });
       }
 
-      // Auto close dialog and refresh data
       setOpenDialog(false);
       await fetchMovies(false);
     } catch (error) {
@@ -373,14 +366,14 @@ const MovieManagement = () => {
     });
   };
   const handleDeleteClick = (movie) => {
-    console.log("Movie object:", movie);
+    //console.log("Movie object:", movie);
     const hasShowtime = checkMovieHasShowtimes(movie);
-    console.log(hasShowtime);
-    console.log("Movie ID:", movie.phim_id);
-    console.log(
-      "Matched showtimes:",
-      showtimes.filter((s) => s.movieId?._id === movie.phim_id)
-    );
+    // console.log(hasShowtime);
+    // console.log("Movie ID:", movie.phim_id);
+    // console.log(
+    //   "Matched showtimes:",
+    //   showtimes.filter((s) => s.movieId?._id === movie.phim_id)
+    // );
 
     if (hasShowtime) {
       return setSnackbar({
@@ -409,7 +402,6 @@ const MovieManagement = () => {
         severity: "success",
       });
 
-      // Auto close dialog and refresh data
       setDeleteDialogOpen(false);
       setMovieToDelete(null);
       await fetchMovies(false);
@@ -535,7 +527,6 @@ const MovieManagement = () => {
         mb={2}
       >
         <Typography variant="h4" fontWeight={700} color="primary">
-          <MovieIcon sx={{ mr: 1, verticalAlign: "middle" }} />
           Quản lý phim
         </Typography>
         <Box display="flex" gap={1}>
