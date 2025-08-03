@@ -136,7 +136,6 @@ const ShowTimesManagement = () => {
     setLoadingData(true);
     try {
       const res = await axios.get("/api/rooms");
-      console.log("Fetched rooms:", res.data);
       setRoomData(res.data);
     } catch (err) {
       console.error("Error fetching rooms:", err);
@@ -148,7 +147,6 @@ const ShowTimesManagement = () => {
     setLoadingData(true);
     try {
       const res = await axios.get("/api/movies");
-      console.log("Fetched movies:", res.data);
       setMovie(res.data);
     } catch (err) {
       console.error("Error fetching movies:", err);
@@ -160,7 +158,6 @@ const ShowTimesManagement = () => {
     setLoadingData(true);
     try {
       const res = await axios.get("/api/showtimes");
-      console.log("Fetched showtimes:", res.data);
       setShowtimes(res.data);
     } catch (err) {
       console.error("Error fetching showtimes:", err);

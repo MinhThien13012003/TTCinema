@@ -89,7 +89,6 @@ const MovieManagement = () => {
       if (isNaN(date.getTime())) return "";
       return date.toISOString().split("T")[0];
     } catch (err) {
-      console.error("Error parsing date:", isoString, err);
       return "";
     }
   };
@@ -160,7 +159,6 @@ const MovieManagement = () => {
       setMovies(formatted);
       setFilteredMovies(formatted);
     } catch (error) {
-      console.error("Lỗi khi lấy phim:", error);
       setSnackbar({
         open: true,
         message: "Không thể tải danh sách phim!",
@@ -177,7 +175,6 @@ const MovieManagement = () => {
       const res = await axios.get("/api/genres");
       setGenres(res.data);
     } catch (err) {
-      console.error("Lỗi khi lấy thể loại:", err);
       setSnackbar({
         open: true,
         message: "Không thể tải danh sách thể loại!",
@@ -277,7 +274,6 @@ const MovieManagement = () => {
 
       setOpenDialog(true);
     } catch (err) {
-      console.error("Lỗi khi tải thể loại:", err);
       setSnackbar({
         open: true,
         message: "Không thể tải danh sách thể loại!",
@@ -323,7 +319,6 @@ const MovieManagement = () => {
 
     try {
       if (editingMovie) {
-        console.log("Cập nhật phim:", movieToSend);
         await axios.put(`/api/movies/${editingMovie.phim_id}`, movieToSend);
         setSnackbar({
           open: true,
@@ -331,7 +326,6 @@ const MovieManagement = () => {
           severity: "success",
         });
       } else {
-        console.log("Thêm phim mới:", movieToSend);
         await axios.post("/api/movies", movieToSend);
         setSnackbar({
           open: true,
@@ -393,7 +387,6 @@ const MovieManagement = () => {
 
     setDeleteLoading(true);
     try {
-      console.log("Xóa phim ID:", movieToDelete.phim_id);
       await axios.delete(`/api/movies/${movieToDelete.phim_id}`);
 
       setSnackbar({

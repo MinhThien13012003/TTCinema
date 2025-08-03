@@ -18,6 +18,23 @@ const formatDateDisplay = (dateStr) => {
   return `${dd}/${mm}/${yyyy}`;
 };
 
+// Ẩn suất quá khứ
+const isPastShowtime = (date, startTime) => {
+  const now = new Date();
+  const showtimeDate = new Date(date);
+
+  // Tách giờ và phút từ startTime
+  const [hours, minutes] = startTime.split(":").map(Number);
+  showtimeDate.setHours(hours, minutes, 0, 0);
+
+  // Trừ đi 5 phút (5 * 60 * 1000 = 300000 milliseconds)
+  const showtimeWith5MinBuffer = new Date(
+    showtimeDate.getTime() - 5 * 60 * 1000
+  );
+
+  return showtimeWith5MinBuffer < now;
+};
+
 const ShowTime = ({ movieId }) => {
   const navigate = useNavigate();
   const [showTimesData, setShowTimesData] = useState([]);
@@ -31,10 +48,8 @@ const ShowTime = ({ movieId }) => {
       try {
         const res = await axios.get("/api/showtimes");
         setShowTimesData(res.data);
-        console.log("Suất chiếu đã được lấy thành công:", res.data);
       } catch (err) {
         setShowTimesData([]);
-        console.error("Lỗi khi lấy suất chiếu:", err);
       }
       setLoading(false);
     };
@@ -43,10 +58,8 @@ const ShowTime = ({ movieId }) => {
       try {
         const res = await axios.get("/api/rooms");
         setRoomsData(res.data);
-        console.log("Phòng chiếu đã được lấy thành công:", res.data);
       } catch (err) {
         setRoomsData([]);
-        console.error("Lỗi khi lấy phòng chiếu:", err);
       }
       setLoading(false);
     };
@@ -55,10 +68,8 @@ const ShowTime = ({ movieId }) => {
       try {
         const res = await axios.get("/api/movies");
         setMoviesData(res.data);
-        console.log("Phim đã được lấy thành công:", res.data);
       } catch (err) {
         setMoviesData([]);
-        console.error("Lỗi khi lấy phim:", err);
       }
       setLoading(false);
     };
@@ -98,9 +109,8 @@ const ShowTime = ({ movieId }) => {
     return phong?.name || phong?.ten_phong || `Phòng ${validRoomId}`;
   };
 
-  // Lọc suất chiếu
+  // Lọc suất chiếu theo phim và loại bỏ các suất đã qua
   const filteredSuatChieu = useMemo(() => {
-    //console.log("movieid truyền vào:", movieId);
     return showTimesData.filter((suat) => {
       const movieIdRaw =
         typeof suat.movieId === "object"
@@ -110,12 +120,17 @@ const ShowTime = ({ movieId }) => {
             ""
           : suat.movieId || "";
       const validMovieId = movieIdMap[movieIdRaw] || movieIdRaw;
-      return String(validMovieId) === String(movieId);
+
+      // Kiểm tra movieId và thời gian chiếu
+      const isCorrectMovie = String(validMovieId) === String(movieId);
+      const isNotPast = !isPastShowtime(suat.date, suat.startTime);
+
+      return isCorrectMovie && isNotPast;
     });
   }, [showTimesData, movieId, movieIdMap]);
 
   const suatChieuTheoNgayVaPhong = useMemo(() => {
-    return filteredSuatChieu.reduce((acc, suat) => {
+    const grouped = filteredSuatChieu.reduce((acc, suat) => {
       const ngay = suat.date;
       const roomIdRaw =
         typeof suat.roomId === "object"
@@ -132,9 +147,37 @@ const ShowTime = ({ movieId }) => {
       acc[ngay][validRoomId].push(suat);
       return acc;
     }, {});
+
+    // Loại bỏ các ngày không có suất chiếu nào (sau khi filter)
+    const filteredGrouped = {};
+    Object.entries(grouped).forEach(([ngay, phongData]) => {
+      const hasValidShowtimes = Object.values(phongData).some(
+        (suatChieus) => suatChieus.length > 0
+      );
+      if (hasValidShowtimes) {
+        // Chỉ giữ lại các phòng có suất chiếu
+        const validPhongData = {};
+        Object.entries(phongData).forEach(([roomId, suatChieus]) => {
+          if (suatChieus.length > 0) {
+            validPhongData[roomId] = suatChieus;
+          }
+        });
+        filteredGrouped[ngay] = validPhongData;
+      }
+    });
+
+    return filteredGrouped;
   }, [filteredSuatChieu, roomIdMap]);
 
   const handleBooking = (suatChieu) => {
+    // Kiểm tra lại xem suất chiếu có còn hiệu lực không trước khi booking (trước 5 phút)
+    if (isPastShowtime(suatChieu.date, suatChieu.startTime)) {
+      alert(
+        "Suất chiếu này sắp bắt đầu hoặc đã bắt đầu. Vui lòng chọn suất chiếu khác."
+      );
+      return;
+    }
+
     const movie = moviesData.find((m) => {
       const movieIdRaw =
         typeof suatChieu.movieId === "object"
@@ -283,7 +326,7 @@ const ShowTime = ({ movieId }) => {
             color="text.secondary"
             sx={{ fontSize: "14px" }}
           >
-            Không có suất chiếu nào cho phim này
+            Không có suất chiếu nào khả dụng cho phim này
           </Typography>
         </Box>
       )}

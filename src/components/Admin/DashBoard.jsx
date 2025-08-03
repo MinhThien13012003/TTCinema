@@ -203,34 +203,33 @@ const Dashboard = () => {
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   <Star size={20} color="#ffc107" style={{ marginRight: 8 }} />
-                  Top 5 phim bán chạy nhất
+                  Doanh thu theo phim
                 </Typography>
 
                 <Grid container spacing={2}>
                   {revenueByMovie.slice(0, 5).map((movie, index) => (
-                    <Grid item xs={12} sm={6} md={2.4} key={movie._id}>
+                    <Grid item key={movie._id} sx={{ width: 200 }}>
                       <Paper
                         sx={{
                           p: 2,
                           textAlign: "center",
-                          bgcolor: index === 0 ? "#fff3e0" : "#fff",
-                          border:
-                            index === 0
-                              ? "2px solid #ffc107"
-                              : "1px solid #ccc",
+                          bgcolor: "#fff",
                           borderRadius: 2,
+                          height: 140,
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "center",
                         }}
                       >
-                        {index === 0 && (
-                          <Chip
-                            label="🏆 #1"
-                            color="warning"
-                            size="small"
-                            sx={{ mb: 1 }}
-                          />
-                        )}
-                        <Typography variant="h6">#{index + 1}</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontWeight: 500,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
                           {movie.movieTitle}
                         </Typography>
                         <Typography variant="body2" color="primary">
@@ -250,6 +249,7 @@ const Dashboard = () => {
             <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
+                  <Film size={20} color="#42a5f5" style={{ marginRight: 8 }} />
                   Doanh thu theo phòng chiếu
                 </Typography>
 

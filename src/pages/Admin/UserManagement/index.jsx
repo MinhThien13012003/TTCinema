@@ -1,3 +1,4 @@
+// src/pages/UserManagement/index.jsx
 import React, { useState } from "react";
 import {
   Box,
@@ -13,6 +14,13 @@ import UserFormDialog from "./UserFormDialog";
 
 const UserManagement = () => {
   const [openDialog, setOpenDialog] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleEditUser = (user) => {
+    setEditingUser(user);
+    setOpenDialog(true);
+  };
 
   return (
     <Box p={3}>
@@ -20,34 +28,13 @@ const UserManagement = () => {
         Quản lý người dùng
       </Typography>
 
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={2}
-          justifyContent="space-between"
-          alignItems="center"
-        >
-          <TextField
-            label="Tìm kiếm người dùng"
-            variant="outlined"
-            size="small"
-            sx={{ width: { xs: "100%", sm: "300px" } }}
-          />
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setOpenDialog(true)}
-          >
-            Thêm người dùng
-          </Button>
-        </Stack>
-      </Paper>
-
-      <UserTable />
+      <UserTable onEditUser={handleEditUser} refreshTrigger={refreshKey} />
 
       <UserFormDialog
         open={openDialog}
         handleClose={() => setOpenDialog(false)}
+        editingUser={editingUser}
+        onSuccess={() => setRefreshKey((prev) => prev + 1)}
       />
     </Box>
   );

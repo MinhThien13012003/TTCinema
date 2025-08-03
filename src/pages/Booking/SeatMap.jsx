@@ -31,7 +31,7 @@ const SeatMap = ({
                   <Box
                     key={seat.seatNumber}
                     onClick={() => {
-                      if (getSeatStatus(seat.seatNumber) !== "booked") {
+                      if (getSeatStatus(seat) !== "booked") {
                         handleSelectSeat(seat.seatNumber);
                       }
                     }}
@@ -42,7 +42,7 @@ const SeatMap = ({
                       border: "1px solid #ddd",
                       borderRadius: "4px",
                       cursor:
-                        getSeatStatus(seat.seatNumber) === "booked"
+                        getSeatStatus(seat) === "booked"
                           ? "not-allowed"
                           : "pointer",
                       display: "flex",

@@ -184,7 +184,6 @@ const RoomManagement = ({ seatTypes }) => {
           const updatePayload = {
             loai_ghe_id: parseInt(form.loai_ghe_id),
           };
-          console.log("Update payload:", updatePayload);
           await axios.put(`/api/seats/${editingSeat.ghe_id}`, updatePayload);
           showSnackBar("Cập nhật thành công!");
           fetchSeatsByRoomId(selectedRoom._id);

@@ -12,180 +12,148 @@ import {
   ListItemText,
   Avatar,
   Container,
-  Divider,
 } from "@mui/material";
-import {
-  Person,
-  Stars,
-  History,
-  Logout,
-  AccountCircle,
-} from "@mui/icons-material";
+import { Person, History, Logout, AccountCircle } from "@mui/icons-material";
+import OrderHistory from "./OrderHistory";
 
 const AccountProfile = () => {
   const [activeTab, setActiveTab] = useState("info");
   const sidebarWidth = 240;
 
   const menuItems = [
-    { id: "info", label: "Thông tin khách hàng", icon: <Person /> },
+    // { id: "info", label: "Thông tin khách hàng", icon: <Person /> },
     { id: "history", label: "Lịch sử mua hàng", icon: <History /> },
   ];
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case "info":
-        return (
-          <>
-            <Typography
-              variant="h4"
-              sx={{ fontWeight: "bold", mb: 3, color: "#333" }}
-            >
-              THÔNG TIN KHÁCH HÀNG
-            </Typography>
+      // case "info":
+      //   return (
+      //     <>
+      //       <Typography
+      //         variant="h4"
+      //         sx={{ fontWeight: "bold", mb: 3, color: "#333" }}
+      //       >
+      //         THÔNG TIN KHÁCH HÀNG
+      //       </Typography>
 
-            <Paper
-              elevation={0}
-              sx={{ p: 3, mb: 3, borderRadius: 2, border: "1px solid #e0e0e0" }}
-            >
-              <Typography
-                variant="h6"
-                sx={{ fontWeight: "bold", mb: 2.5, color: "#333" }}
-              >
-                Thông tin cá nhân
-              </Typography>
-              <Grid container spacing={2.5} sx={{ mb: 3 }}>
-                {[
-                  { label: "Họ và tên", defaultValue: "Võ Minh Thiện" },
-                  {
-                    label: "Ngày sinh",
-                    type: "date",
-                    defaultValue: "2003-01-13",
-                  },
-                  { label: "Số điện thoại", defaultValue: "0936385810" },
-                  { label: "Email", defaultValue: "vominhthien131@gmail.com" },
-                ].map((field, idx) => (
-                  <Grid item xs={12} md={6} key={idx}>
-                    <Typography
-                      variant="body2"
-                      sx={{ mb: 1, color: "#666", fontWeight: 500 }}
-                    >
-                      {field.label}
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      type={field.type || "text"}
-                      defaultValue={field.defaultValue}
-                      variant="outlined"
-                      size="small"
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          "&:hover fieldset": { borderColor: "#4A5FD9" },
-                          "&.Mui-focused fieldset": { borderColor: "#4A5FD9" },
-                        },
-                      }}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
-              <Button
-                variant="movie"
-                sx={{
-                  fontWeight: "bold",
-                  bgcolor: "#333",
-                  color: "white",
-                  px: 3,
-                  py: 1,
-                  borderRadius: 1,
-                }}
-              >
-                LƯU THÔNG TIN
-              </Button>
-            </Paper>
+      //       <Paper
+      //         elevation={0}
+      //         sx={{ p: 3, mb: 3, borderRadius: 2, border: "1px solid #e0e0e0" }}
+      //       >
+      //         <Typography
+      //           variant="h6"
+      //           sx={{ fontWeight: "bold", mb: 2.5, color: "#333" }}
+      //         >
+      //           Thông tin cá nhân
+      //         </Typography>
+      //         <Grid container spacing={2.5} sx={{ mb: 3 }}>
+      //           {[
+      //             { label: "Họ và tên", defaultValue: "Võ Minh Thiện" },
+      //             {
+      //               label: "Ngày sinh",
+      //               type: "date",
+      //               defaultValue: "2003-01-13",
+      //             },
+      //             { label: "Số điện thoại", defaultValue: "0936385810" },
+      //             { label: "Email", defaultValue: "vominhthien131@gmail.com" },
+      //           ].map((field, idx) => (
+      //             <Grid item xs={12} md={6} key={idx}>
+      //               <Typography
+      //                 variant="body2"
+      //                 sx={{ mb: 1, color: "#666", fontWeight: 500 }}
+      //               >
+      //                 {field.label}
+      //               </Typography>
+      //               <TextField
+      //                 fullWidth
+      //                 type={field.type || "text"}
+      //                 defaultValue={field.defaultValue}
+      //                 variant="outlined"
+      //                 size="small"
+      //                 sx={{
+      //                   "& .MuiOutlinedInput-root": {
+      //                     "&:hover fieldset": { borderColor: "#4A5FD9" },
+      //                     "&.Mui-focused fieldset": { borderColor: "#4A5FD9" },
+      //                   },
+      //                 }}
+      //               />
+      //             </Grid>
+      //           ))}
+      //         </Grid>
+      //         <Button
+      //           variant="movie"
+      //           sx={{
+      //             fontWeight: "bold",
+      //             bgcolor: "#333",
+      //             color: "white",
+      //             px: 3,
+      //             py: 1,
+      //             borderRadius: 1,
+      //           }}
+      //         >
+      //           LƯU THÔNG TIN
+      //         </Button>
+      //       </Paper>
 
-            <Paper
-              elevation={0}
-              sx={{ p: 3, borderRadius: 2, border: "1px solid #e0e0e0" }}
-            >
-              <Typography
-                variant="h6"
-                sx={{ fontWeight: "bold", mb: 2.5, color: "#333" }}
-              >
-                Đổi mật khẩu
-              </Typography>
-              <Grid container spacing={2.5}>
-                {["Mật khẩu cũ", "Mật khẩu mới", "Xác thực mật khẩu"].map(
-                  (label, idx) => (
-                    <Grid item xs={12} md={4} key={idx}>
-                      <Typography
-                        variant="body2"
-                        sx={{ mb: 1, color: "#666", fontWeight: 500 }}
-                      >
-                        {label} <span style={{ color: "red" }}>*</span>
-                      </Typography>
-                      <TextField
-                        fullWidth
-                        type="password"
-                        required
-                        variant="outlined"
-                        size="small"
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            "&:hover fieldset": { borderColor: "#4A5FD9" },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "#4A5FD9",
-                            },
-                          },
-                        }}
-                      />
-                    </Grid>
-                  )
-                )}
-              </Grid>
-              <Button
-                variant="movie"
-                sx={{
-                  mt: 3,
-                  fontWeight: "bold",
-                  bgcolor: "#4A5FD9",
-                  color: "white",
-                  px: 3,
-                  py: 1,
-                  borderRadius: 1,
-                }}
-              >
-                ĐỔI MẬT KHẨU
-              </Button>
-            </Paper>
-          </>
-        );
+      //       <Paper
+      //         elevation={0}
+      //         sx={{ p: 3, borderRadius: 2, border: "1px solid #e0e0e0" }}
+      //       >
+      //         <Typography
+      //           variant="h6"
+      //           sx={{ fontWeight: "bold", mb: 2.5, color: "#333" }}
+      //         >
+      //           Đổi mật khẩu
+      //         </Typography>
+      //         <Grid container spacing={2.5}>
+      //           {["Mật khẩu cũ", "Mật khẩu mới", "Xác thực mật khẩu"].map(
+      //             (label, idx) => (
+      //               <Grid item xs={12} md={4} key={idx}>
+      //                 <Typography
+      //                   variant="body2"
+      //                   sx={{ mb: 1, color: "#666", fontWeight: 500 }}
+      //                 >
+      //                   {label} <span style={{ color: "red" }}>*</span>
+      //                 </Typography>
+      //                 <TextField
+      //                   fullWidth
+      //                   type="password"
+      //                   required
+      //                   variant="outlined"
+      //                   size="small"
+      //                   sx={{
+      //                     "& .MuiOutlinedInput-root": {
+      //                       "&:hover fieldset": { borderColor: "#4A5FD9" },
+      //                       "&.Mui-focused fieldset": {
+      //                         borderColor: "#4A5FD9",
+      //                       },
+      //                     },
+      //                   }}
+      //                 />
+      //               </Grid>
+      //             )
+      //           )}
+      //         </Grid>
+      //         <Button
+      //           variant="movie"
+      //           sx={{
+      //             mt: 3,
+      //             fontWeight: "bold",
+      //             bgcolor: "#4A5FD9",
+      //             color: "white",
+      //             px: 3,
+      //             py: 1,
+      //             borderRadius: 1,
+      //           }}
+      //         >
+      //           ĐỔI MẬT KHẨU
+      //         </Button>
+      //       </Paper>
+      //     </>
+      //   );
       case "history":
-        return (
-          <Paper
-            elevation={0}
-            sx={{ p: 3, borderRadius: 2, border: "1px solid #e0e0e0" }}
-          >
-            <Typography
-              variant="h5"
-              sx={{ fontWeight: "bold", color: "#333", mb: 2 }}
-            >
-              Lịch sử mua hàng
-            </Typography>
-            {[1, 2, 3].map((item) => (
-              <Box
-                key={item}
-                sx={{ mb: 2, p: 2, border: "1px solid #ddd", borderRadius: 2 }}
-              >
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                  Vé xem phim Interstellar
-                </Typography>
-                <Typography variant="body2">
-                  Ngày chiếu: 10/07/2025 - 20:00
-                </Typography>
-                <Typography variant="body2">Ghế: B5, B6</Typography>
-              </Box>
-            ))}
-          </Paper>
-        );
+        return <OrderHistory />;
 
       default:
         return null;
@@ -217,7 +185,7 @@ const AccountProfile = () => {
             >
               <AccountCircle sx={{ fontSize: 24 }} />
             </Avatar>
-            <Box>
+            {/* <Box>
               <Typography
                 variant="subtitle2"
                 sx={{ fontWeight: "bold", fontSize: "0.85rem" }}
@@ -230,7 +198,7 @@ const AccountProfile = () => {
               >
                 Thay đổi ảnh đại diện
               </Typography>
-            </Box>
+            </Box> */}
           </Box>
 
           <List sx={{ p: 0 }}>
